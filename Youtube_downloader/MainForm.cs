@@ -23,7 +23,7 @@ namespace Youtube_downloader
             youtubeDownload = new YouTubeDownload();
         }
 
-        private async void button1_Click(object sender, EventArgs e)
+        private async void downloadAudioButton_Click(object sender, EventArgs e)
         {
             var progress = new Progress<DownloadProgress>(p => audioProgressBar.Value = (int)(p.Progress*10));
             youtubeDownload.DownloadAudio(linkInputTextBox.Text, progress);

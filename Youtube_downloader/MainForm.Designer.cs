@@ -56,7 +56,7 @@
             this.downloadAudioButton.TabIndex = 0;
             this.downloadAudioButton.Text = "Скачать";
             this.downloadAudioButton.UseVisualStyleBackColor = false;
-            this.downloadAudioButton.Click += new System.EventHandler(this.button1_Click);
+            this.downloadAudioButton.Click += new System.EventHandler(this.downloadAudioButton_Click);
             // 
             // linkText
             // 
