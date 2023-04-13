@@ -38,7 +38,11 @@
             this.trackListPanel = new System.Windows.Forms.Panel();
             this.trackListBox = new System.Windows.Forms.ListBox();
             this.audioProgressBar = new System.Windows.Forms.ProgressBar();
+            this.downloadProgressBar = new System.Windows.Forms.ProgressBar();
+            this.playlistListBox = new System.Windows.Forms.ListBox();
             this.downloadPanel.SuspendLayout();
+            this.enableAudioPanel.SuspendLayout();
+            this.playlistPanel.SuspendLayout();
             this.trackListPanel.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -106,6 +110,7 @@
             // enableAudioPanel
             // 
             this.enableAudioPanel.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(3)))), ((int)(((byte)(64)))), ((int)(((byte)(106)))));
+            this.enableAudioPanel.Controls.Add(this.downloadProgressBar);
             this.enableAudioPanel.Dock = System.Windows.Forms.DockStyle.Bottom;
             this.enableAudioPanel.Location = new System.Drawing.Point(0, 575);
             this.enableAudioPanel.Name = "enableAudioPanel";
@@ -115,6 +120,7 @@
             // playlistPanel
             // 
             this.playlistPanel.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(3)))), ((int)(((byte)(64)))), ((int)(((byte)(106)))));
+            this.playlistPanel.Controls.Add(this.playlistListBox);
             this.playlistPanel.Dock = System.Windows.Forms.DockStyle.Left;
             this.playlistPanel.Location = new System.Drawing.Point(0, 97);
             this.playlistPanel.Name = "playlistPanel";
@@ -150,6 +156,27 @@
             this.audioProgressBar.Size = new System.Drawing.Size(810, 23);
             this.audioProgressBar.TabIndex = 0;
             // 
+            // downloadProgressBar
+            // 
+            this.downloadProgressBar.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(36)))), ((int)(((byte)(87)))), ((int)(((byte)(123)))));
+            this.downloadProgressBar.Dock = System.Windows.Forms.DockStyle.Top;
+            this.downloadProgressBar.Location = new System.Drawing.Point(0, 0);
+            this.downloadProgressBar.Name = "downloadProgressBar";
+            this.downloadProgressBar.Size = new System.Drawing.Size(1004, 10);
+            this.downloadProgressBar.TabIndex = 0;
+            // 
+            // playlistListBox
+            // 
+            this.playlistListBox.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(3)))), ((int)(((byte)(64)))), ((int)(((byte)(106)))));
+            this.playlistListBox.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.playlistListBox.ForeColor = System.Drawing.SystemColors.Window;
+            this.playlistListBox.FormattingEnabled = true;
+            this.playlistListBox.ItemHeight = 16;
+            this.playlistListBox.Location = new System.Drawing.Point(0, 0);
+            this.playlistListBox.Name = "playlistListBox";
+            this.playlistListBox.Size = new System.Drawing.Size(194, 478);
+            this.playlistListBox.TabIndex = 0;
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
@@ -163,6 +190,8 @@
             this.Name = "MainForm";
             this.downloadPanel.ResumeLayout(false);
             this.downloadPanel.PerformLayout();
+            this.enableAudioPanel.ResumeLayout(false);
+            this.playlistPanel.ResumeLayout(false);
             this.trackListPanel.ResumeLayout(false);
             this.ResumeLayout(false);
 
@@ -180,6 +209,8 @@
         private System.Windows.Forms.Button addPlaylistButton;
         private System.Windows.Forms.ProgressBar audioProgressBar;
         private System.Windows.Forms.ListBox trackListBox;
+        private System.Windows.Forms.ProgressBar downloadProgressBar;
+        private System.Windows.Forms.ListBox playlistListBox;
     }
 }
 
