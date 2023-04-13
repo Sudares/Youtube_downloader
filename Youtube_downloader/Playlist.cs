@@ -5,8 +5,10 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Youtube_downloader {
-    internal class Playlist {
+    class Playlist {
         public string playlistName;
-        public List<Song> songs; 
+        public List<Song> songs;
+        public string playlistUrl;
+        public string directoryPath;
     }
 }

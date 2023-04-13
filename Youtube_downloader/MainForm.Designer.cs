@@ -37,7 +37,6 @@
             this.playlistPanel = new System.Windows.Forms.Panel();
             this.trackListPanel = new System.Windows.Forms.Panel();
             this.trackListBox = new System.Windows.Forms.ListBox();
-            this.audioProgressBar = new System.Windows.Forms.ProgressBar();
             this.downloadProgressBar = new System.Windows.Forms.ProgressBar();
             this.playlistListBox = new System.Windows.Forms.ListBox();
             this.downloadPanel.SuspendLayout();
@@ -130,7 +129,6 @@
             // trackListPanel
             // 
             this.trackListPanel.Controls.Add(this.trackListBox);
-            this.trackListPanel.Controls.Add(this.audioProgressBar);
             this.trackListPanel.Dock = System.Windows.Forms.DockStyle.Fill;
             this.trackListPanel.Location = new System.Drawing.Point(194, 97);
             this.trackListPanel.Name = "trackListPanel";
@@ -148,13 +146,6 @@
             this.trackListBox.Name = "trackListBox";
             this.trackListBox.Size = new System.Drawing.Size(810, 478);
             this.trackListBox.TabIndex = 1;
-            // 
-            // audioProgressBar
-            // 
-            this.audioProgressBar.Location = new System.Drawing.Point(0, 0);
-            this.audioProgressBar.Name = "audioProgressBar";
-            this.audioProgressBar.Size = new System.Drawing.Size(810, 23);
-            this.audioProgressBar.TabIndex = 0;
             // 
             // downloadProgressBar
             // 
@@ -207,7 +198,6 @@
         private System.Windows.Forms.Panel playlistPanel;
         private System.Windows.Forms.Panel trackListPanel;
         private System.Windows.Forms.Button addPlaylistButton;
-        private System.Windows.Forms.ProgressBar audioProgressBar;
         private System.Windows.Forms.ListBox trackListBox;
         private System.Windows.Forms.ProgressBar downloadProgressBar;
         private System.Windows.Forms.ListBox playlistListBox;
