@@ -11,7 +11,7 @@ using YoutubeDLSharp.Options;
 namespace Youtube_downloader {
     internal class YouTubeDownload {
         YoutubeDL youtubeDownloader;
-        string sourcePath = @"C:\Users\Home\Desktop";
+        string sourcePath = @"C:\Users\Home\Desktop\Downloads";
         List<Playlist> playlists = new List<Playlist>();
         List<Song> songs = new List<Song>();
         public delegate void PlaylistsEventHandler(object sender, List<Playlist> playlists);
