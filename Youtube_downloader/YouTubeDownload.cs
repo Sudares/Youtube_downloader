@@ -9,17 +9,17 @@ using YoutubeDLSharp.Metadata;
 using YoutubeDLSharp.Options;
 
 namespace Youtube_downloader {
-    internal class YouTubeDownload {
+    class YouTubeDownload {
         YoutubeDL youtubeDownloader;
         string sourcePath = @"C:\Users\Home\Desktop\Downloads";
         List<Playlist> playlists = new List<Playlist>();
         List<Song> songs = new List<Song>();
         public delegate void PlaylistsEventHandler(object sender, List<Playlist> playlists);
-        internal event PlaylistsEventHandler PlaylistsEvent;
+        public event PlaylistsEventHandler PlaylistsEvent;
         public delegate void SongsEventHandler(object sender, Playlist playlist, List<Song> songs);
-        internal event SongsEventHandler SongsEvent;
+        public event SongsEventHandler SongsEvent;
 
-        internal YouTubeDownload() {
+        public YouTubeDownload() {
             youtubeDownloader = new YoutubeDL();
             youtubeDownloader.YoutubeDLPath = @"C:\Users\Home\source\repos\Youtube_downloader\Youtube_downloader\ytDownloader\yt-dlp.exe";
             youtubeDownloader.FFmpegPath = @"C:\Users\Home\source\repos\Youtube_downloader\Youtube_downloader\ytDownloader\ffmpeg\bin\ffmpeg.exe";
