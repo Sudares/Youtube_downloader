@@ -1,11 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
 namespace Youtube_downloader {
-    class Playlist {
+    public class Playlist {
         public string playlistName;
         public List<Song> songs;
         public string playlistUrl;

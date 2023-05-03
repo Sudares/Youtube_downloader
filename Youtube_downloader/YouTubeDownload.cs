@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using System.Web;
 using YoutubeDLSharp;
 using YoutubeDLSharp.Metadata;
 using YoutubeDLSharp.Options;
@@ -12,12 +10,6 @@ namespace Youtube_downloader {
     class YouTubeDownload {
         YoutubeDL youtubeDownloader;
         string sourcePath = @"C:\Users\Home\Desktop\Downloads";
-        List<Playlist> playlists = new List<Playlist>();
-        List<Song> songs = new List<Song>();
-        public delegate void PlaylistsEventHandler(object sender, List<Playlist> playlists);
-        public event PlaylistsEventHandler PlaylistsEvent;
-        public delegate void SongsEventHandler(object sender, Playlist playlist, List<Song> songs);
-        public event SongsEventHandler SongsEvent;
 
         public YouTubeDownload() {
             youtubeDownloader = new YoutubeDL();
@@ -26,19 +18,43 @@ namespace Youtube_downloader {
             youtubeDownloader.OutputFolder = sourcePath;
         }
 
-        public async void Download(string link, IProgress<DownloadProgress> progress) {
+        public readonly struct DownloadResult {
+            public readonly Playlist Playlist;
+            public readonly Song Song;
+            public readonly Boolean Success;
+
+            public DownloadResult(Playlist playlist) {
+                Playlist = playlist;
+                Song = null;
+                Success = true;
+            }
+
+            public DownloadResult(Song song) {
+                Song = song;
+                Playlist = null;
+                Success = true;
+            }
+
+            public DownloadResult(bool success = false) {
+                Success = success;
+                Song = null;
+                Playlist= null;
+            }
+        }
+        public async Task<DownloadResult> Download(string link, IProgress<DownloadProgress> progress) {
             var result = await youtubeDownloader.RunVideoDataFetch(link);
 
             if(result.Success) {
                 var data = result.Data;
                 if(data.Entries == null) {
                     var song = await DownloadAudio(data, progress);
-                    AddSong(song);
+                    return new DownloadResult(song);
                 } else {
                     var playlist = await DownloadPlaylist(data, progress);
-                    AddPlaylist(playlist);
+                    return new DownloadResult(playlist);
                 }
             }
+            return new DownloadResult();
         }
 
         private async Task<Song> DownloadAudio(VideoData videoData, IProgress<DownloadProgress> progress) 
@@ -83,21 +99,6 @@ namespace Youtube_downloader {
             }
 
             return playlist;
-        }
-
-        public void AddSong(Song song) {
-            songs.Insert(0,song);
-            SongsEvent?.Invoke(this, null, songs);
-        }
-
-        public void AddPlaylist(Playlist playlist) {
-            playlists.Add(playlist);
-            foreach (var song in playlist.songs) {
-                AddSong(song);
-            }
-
-            SongsEvent?.Invoke(this, playlist, playlist.songs);
-            PlaylistsEvent?.Invoke(this, playlists);
         }
     }
 }
