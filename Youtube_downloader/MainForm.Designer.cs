@@ -28,19 +28,23 @@
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             this.downloadAudioButton = new System.Windows.Forms.Button();
             this.linkText = new System.Windows.Forms.Label();
             this.linkInputTextBox = new System.Windows.Forms.TextBox();
             this.downloadPanel = new System.Windows.Forms.Panel();
             this.addPlaylistButton = new System.Windows.Forms.Button();
             this.enableAudioPanel = new System.Windows.Forms.Panel();
+            this.player = new AxWMPLib.AxWindowsMediaPlayer();
+            this.downloadProgressBar = new System.Windows.Forms.ProgressBar();
             this.playlistPanel = new System.Windows.Forms.Panel();
+            this.playlistListBox = new System.Windows.Forms.ListBox();
             this.trackListPanel = new System.Windows.Forms.Panel();
             this.trackListBox = new System.Windows.Forms.ListBox();
-            this.downloadProgressBar = new System.Windows.Forms.ProgressBar();
-            this.playlistListBox = new System.Windows.Forms.ListBox();
+            this.backgroundWorker1 = new System.ComponentModel.BackgroundWorker();
             this.downloadPanel.SuspendLayout();
             this.enableAudioPanel.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.player)).BeginInit();
             this.playlistPanel.SuspendLayout();
             this.trackListPanel.SuspendLayout();
             this.SuspendLayout();
@@ -109,43 +113,23 @@
             // enableAudioPanel
             // 
             this.enableAudioPanel.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(3)))), ((int)(((byte)(64)))), ((int)(((byte)(106)))));
+            this.enableAudioPanel.Controls.Add(this.player);
             this.enableAudioPanel.Controls.Add(this.downloadProgressBar);
             this.enableAudioPanel.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.enableAudioPanel.Location = new System.Drawing.Point(0, 575);
+            this.enableAudioPanel.Location = new System.Drawing.Point(0, 608);
             this.enableAudioPanel.Name = "enableAudioPanel";
-            this.enableAudioPanel.Size = new System.Drawing.Size(1004, 94);
+            this.enableAudioPanel.Size = new System.Drawing.Size(1004, 65);
             this.enableAudioPanel.TabIndex = 6;
             // 
-            // playlistPanel
+            // player
             // 
-            this.playlistPanel.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(3)))), ((int)(((byte)(64)))), ((int)(((byte)(106)))));
-            this.playlistPanel.Controls.Add(this.playlistListBox);
-            this.playlistPanel.Dock = System.Windows.Forms.DockStyle.Left;
-            this.playlistPanel.Location = new System.Drawing.Point(0, 97);
-            this.playlistPanel.Name = "playlistPanel";
-            this.playlistPanel.Size = new System.Drawing.Size(194, 478);
-            this.playlistPanel.TabIndex = 7;
-            // 
-            // trackListPanel
-            // 
-            this.trackListPanel.Controls.Add(this.trackListBox);
-            this.trackListPanel.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.trackListPanel.Location = new System.Drawing.Point(194, 97);
-            this.trackListPanel.Name = "trackListPanel";
-            this.trackListPanel.Size = new System.Drawing.Size(810, 478);
-            this.trackListPanel.TabIndex = 8;
-            // 
-            // trackListBox
-            // 
-            this.trackListBox.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(36)))), ((int)(((byte)(87)))), ((int)(((byte)(123)))));
-            this.trackListBox.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.trackListBox.ForeColor = System.Drawing.SystemColors.Window;
-            this.trackListBox.FormattingEnabled = true;
-            this.trackListBox.ItemHeight = 16;
-            this.trackListBox.Location = new System.Drawing.Point(0, 0);
-            this.trackListBox.Name = "trackListBox";
-            this.trackListBox.Size = new System.Drawing.Size(810, 478);
-            this.trackListBox.TabIndex = 1;
+            this.player.Dock = System.Windows.Forms.DockStyle.Top;
+            this.player.Enabled = true;
+            this.player.Location = new System.Drawing.Point(0, 10);
+            this.player.Name = "player";
+            this.player.OcxState = ((System.Windows.Forms.AxHost.State)(resources.GetObject("player.OcxState")));
+            this.player.Size = new System.Drawing.Size(1004, 46);
+            this.player.TabIndex = 1;
             // 
             // downloadProgressBar
             // 
@@ -156,24 +140,59 @@
             this.downloadProgressBar.Size = new System.Drawing.Size(1004, 10);
             this.downloadProgressBar.TabIndex = 0;
             // 
+            // playlistPanel
+            // 
+            this.playlistPanel.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(3)))), ((int)(((byte)(64)))), ((int)(((byte)(106)))));
+            this.playlistPanel.Controls.Add(this.playlistListBox);
+            this.playlistPanel.Dock = System.Windows.Forms.DockStyle.Left;
+            this.playlistPanel.Location = new System.Drawing.Point(0, 97);
+            this.playlistPanel.Name = "playlistPanel";
+            this.playlistPanel.Size = new System.Drawing.Size(194, 511);
+            this.playlistPanel.TabIndex = 7;
+            // 
             // playlistListBox
             // 
             this.playlistListBox.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(3)))), ((int)(((byte)(64)))), ((int)(((byte)(106)))));
+            this.playlistListBox.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.playlistListBox.Dock = System.Windows.Forms.DockStyle.Fill;
             this.playlistListBox.ForeColor = System.Drawing.SystemColors.Window;
             this.playlistListBox.FormattingEnabled = true;
             this.playlistListBox.ItemHeight = 16;
             this.playlistListBox.Location = new System.Drawing.Point(0, 0);
             this.playlistListBox.Name = "playlistListBox";
-            this.playlistListBox.Size = new System.Drawing.Size(194, 478);
+            this.playlistListBox.Size = new System.Drawing.Size(194, 511);
             this.playlistListBox.TabIndex = 0;
+            this.playlistListBox.SelectedIndexChanged += new System.EventHandler(this.playlistListBox_SelectedIndexChanged);
+            // 
+            // trackListPanel
+            // 
+            this.trackListPanel.Controls.Add(this.trackListBox);
+            this.trackListPanel.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.trackListPanel.Location = new System.Drawing.Point(194, 97);
+            this.trackListPanel.Name = "trackListPanel";
+            this.trackListPanel.Size = new System.Drawing.Size(810, 511);
+            this.trackListPanel.TabIndex = 8;
+            // 
+            // trackListBox
+            // 
+            this.trackListBox.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(36)))), ((int)(((byte)(87)))), ((int)(((byte)(123)))));
+            this.trackListBox.BorderStyle = System.Windows.Forms.BorderStyle.None;
+            this.trackListBox.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.trackListBox.ForeColor = System.Drawing.SystemColors.Window;
+            this.trackListBox.FormattingEnabled = true;
+            this.trackListBox.ItemHeight = 16;
+            this.trackListBox.Location = new System.Drawing.Point(0, 0);
+            this.trackListBox.Name = "trackListBox";
+            this.trackListBox.Size = new System.Drawing.Size(810, 511);
+            this.trackListBox.TabIndex = 1;
+            this.trackListBox.SelectedIndexChanged += new System.EventHandler(this.trackListBox_SelectedIndexChanged);
             // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(36)))), ((int)(((byte)(87)))), ((int)(((byte)(123)))));
-            this.ClientSize = new System.Drawing.Size(1004, 669);
+            this.ClientSize = new System.Drawing.Size(1004, 673);
             this.Controls.Add(this.trackListPanel);
             this.Controls.Add(this.playlistPanel);
             this.Controls.Add(this.enableAudioPanel);
@@ -182,6 +201,7 @@
             this.downloadPanel.ResumeLayout(false);
             this.downloadPanel.PerformLayout();
             this.enableAudioPanel.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.player)).EndInit();
             this.playlistPanel.ResumeLayout(false);
             this.trackListPanel.ResumeLayout(false);
             this.ResumeLayout(false);
@@ -201,6 +221,8 @@
         private System.Windows.Forms.ListBox trackListBox;
         private System.Windows.Forms.ProgressBar downloadProgressBar;
         private System.Windows.Forms.ListBox playlistListBox;
+        private AxWMPLib.AxWindowsMediaPlayer player;
+        private System.ComponentModel.BackgroundWorker backgroundWorker1;
     }
 }
 

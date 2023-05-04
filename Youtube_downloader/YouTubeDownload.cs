@@ -42,7 +42,7 @@ namespace Youtube_downloader {
             }
         }
         public async Task<DownloadResult> Download(string link, IProgress<DownloadProgress> progress) {
-            var result = await youtubeDownloader.RunVideoDataFetch(link);
+            var result = await youtubeDownloader.RunVideoDataFetch(link); // получаем данные по ссылке
 
             if(result.Success) {
                 var data = result.Data;
