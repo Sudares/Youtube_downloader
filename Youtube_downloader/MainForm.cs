@@ -1,20 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Windows.Forms;
 using YoutubeDLSharp;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.StartPanel;
 
 namespace Youtube_downloader
 {
     public partial class MainForm : Form
     {
         YouTubeDownload youtubeDownload;
-        //private BackgroundWorker backgroundWorker = new BackgroundWorker();    для ProgressBar
         Database database;
         static string databasePath = @"C:\Users\Home\Desktop\Downloads\downloads.xml";
         private List<Song> currentSongs;
-        private Playlist currentPlaylist;
 
         public MainForm()
         {
@@ -41,13 +37,13 @@ namespace Youtube_downloader
             Update();
             Database.Save(database, databasePath);
         }
-        private void AddSong(Song song) {
+        private void AddSong(Song song) { // добавление песни в базу данных
             database.Songs.Insert(0, song);
         }
 
-        private void AddPlaylist(Playlist playlist) {
+        private void AddPlaylist(Playlist playlist) { // добавление плейлиста вбазу данных
             database.Playlists.Add(playlist);
-            foreach (var song in playlist.songs) {
+            foreach (var song in playlist.songs) { // добавление песен плейлиста в базу данных
                 AddSong(song);
             }
         }
@@ -69,13 +65,11 @@ namespace Youtube_downloader
             if(trackListBox.SelectedIndex == -1) {
                 return;
             }
-
-            Song song = currentSongs[trackListBox.SelectedIndex];
             
             player.currentPlaylist = player.newPlaylist("", ""); // создаём плейлист для плеера из списка песен
             
             foreach (Song item in currentSongs) {
-                player.currentPlaylist.appendItem(player.newMedia(item.filePath));
+                player.currentPlaylist.appendItem(player.newMedia(item.filePath)); // добавление медиа в плейлист плеера
             }
 
             // Получаем медиа песни из плейлиста плеера по индексу песни
@@ -89,11 +83,9 @@ namespace Youtube_downloader
             }
 
             if(playlistListBox.SelectedIndex == 0) {
-                currentPlaylist = null;
                 currentSongs = database.Songs;
             } else {
                 Playlist playlist = database.Playlists[playlistListBox.SelectedIndex - 1];
-                currentPlaylist = playlist;
                 currentSongs = playlist.songs;
             }
             Update();
