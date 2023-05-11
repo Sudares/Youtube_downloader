@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using YoutubeDLSharp;
 
@@ -9,15 +10,15 @@ namespace Youtube_downloader
     {
         YouTubeDownload youtubeDownload;
         Database database;
-        static string databasePath = @"C:\Users\Home\Desktop\Downloads\downloads.xml";
+        static string databasePath = @"Data Source=C:\Users\Home\Desktop\Downloads\downloads.sqlite";
         private List<Song> currentSongs;
 
         public MainForm()
         {
             InitializeComponent();
             youtubeDownload = new YouTubeDownload(); 
-            database = Database.Load(databasePath);
-            currentSongs = database.Songs;
+            database = new Database(databasePath);
+            currentSongs = database.GetSongs();
             Update();
         }
 
@@ -27,25 +28,14 @@ namespace Youtube_downloader
             var result = await youtubeDownload.Download(linkInputTextBox.Text, progress);
             if(result.Success) {
                 if(result.Playlist != null) {
-                    AddPlaylist(result.Playlist);
+                    database.AddPlaylist(result.Playlist);
                 }
                 if (result.Song != null) {
-                    AddSong(result.Song);
+                    database.AddSong(result.Song);
+                    currentSongs = database.GetSongs();
                 }
             }
-
             Update();
-            Database.Save(database, databasePath);
-        }
-        private void AddSong(Song song) { // добавление песни в базу данных
-            database.Songs.Insert(0, song);
-        }
-
-        private void AddPlaylist(Playlist playlist) { // добавление плейлиста вбазу данных
-            database.Playlists.Add(playlist);
-            foreach (var song in playlist.songs) { // добавление песен плейлиста в базу данных
-                AddSong(song);
-            }
         }
 
         private void Update() {
@@ -56,7 +46,7 @@ namespace Youtube_downloader
 
             playlistListBox.Items.Clear();
             playlistListBox.Items.Add("Все загруженные песни");
-            foreach (Playlist item in database.Playlists) {
+            foreach (Playlist item in database.GetPlaylists()) {
                 playlistListBox.Items.Add(item.playlistName);
             }
         }
@@ -83,9 +73,9 @@ namespace Youtube_downloader
             }
 
             if(playlistListBox.SelectedIndex == 0) {
-                currentSongs = database.Songs;
+                currentSongs = database.GetSongs();
             } else {
-                Playlist playlist = database.Playlists[playlistListBox.SelectedIndex - 1];
+                Playlist playlist = database.GetPlaylists()[playlistListBox.SelectedIndex - 1];
                 currentSongs = playlist.songs;
             }
             Update();

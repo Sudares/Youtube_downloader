@@ -84,7 +84,7 @@ namespace Youtube_downloader {
             var songs = await Task.WhenAll(tasks);
             var playlist = new Playlist();
             playlist.playlistName = playlistData.Title;
-            playlist.playlistUrl = playlistData.Url;
+            playlist.playlistUrl = playlistData.Url ?? playlistData.WebpageUrl;
             playlist.songs = songs.ToList();
             playlist.directoryPath = sourcePath + "\\" + playlist.playlistName;
 
