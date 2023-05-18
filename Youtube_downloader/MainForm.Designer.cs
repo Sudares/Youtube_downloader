@@ -162,7 +162,8 @@
             this.playlistListBox.Name = "playlistListBox";
             this.playlistListBox.Size = new System.Drawing.Size(194, 511);
             this.playlistListBox.TabIndex = 0;
-            this.playlistListBox.SelectedIndexChanged += new System.EventHandler(this.playlistListBox_SelectedIndexChanged);
+            this.playlistListBox.DoubleClick += new System.EventHandler(this.playlistListBox_DoubleClick);
+            this.playlistListBox.KeyDown += new System.Windows.Forms.KeyEventHandler(this.playlistListBox_KeyDown);
             // 
             // trackListPanel
             // 
@@ -185,7 +186,8 @@
             this.trackListBox.Name = "trackListBox";
             this.trackListBox.Size = new System.Drawing.Size(810, 511);
             this.trackListBox.TabIndex = 1;
-            this.trackListBox.SelectedIndexChanged += new System.EventHandler(this.trackListBox_SelectedIndexChanged);
+            this.trackListBox.DoubleClick += new System.EventHandler(this.trackListBox_DoubleClick);
+            this.trackListBox.KeyDown += new System.Windows.Forms.KeyEventHandler(this.trackListBox_KeyDown);
             // 
             // MainForm
             // 

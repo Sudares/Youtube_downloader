@@ -12,8 +12,6 @@ namespace Youtube_downloader {
 
         public Database(string path) {
             connection = new SQLiteConnection(path);
-            //SQLitePCL.raw.SetProvider(new SQLitePCL.SQLite3Provider_e_sqlite3());
-            //SQLitePCL.Battaries.Init();
             connection.Open();
 
             CreateTable("playlists", new string[]{"id INTEGER PRIMARY KEY",
@@ -72,6 +70,13 @@ namespace Youtube_downloader {
             return rows;
         }
 
+        private void Delete(string tableName, int id) {
+            var command = connection.CreateCommand();
+            command.CommandText = $"DELETE FROM {tableName} WHERE id = $id";
+            command.Parameters.AddWithValue("$id", id);
+            command.ExecuteNonQuery();
+        }
+
         public List<Playlist> GetPlaylists() {
             var rows = Select("playlists", new string[]{"id", "playlistName", "playlistUrl", "directoryPath"});
             var playlists = new List<Playlist>();
@@ -115,6 +120,14 @@ namespace Youtube_downloader {
                 AddSong(song, playlist);
             }
             return playlist.id;
+        }
+
+        public void DeleteSong(Song song) {
+            Delete("songs", song.id);
+        }
+
+        public void DeletePlaylist(Playlist playlist) {
+            Delete("playlists", playlist.id);
         }
     }
 }
