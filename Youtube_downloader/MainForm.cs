@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using YoutubeDLSharp;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.StartPanel;
 
 namespace Youtube_downloader
 {
@@ -17,9 +18,20 @@ namespace Youtube_downloader
         public MainForm()
         {
             InitializeComponent();
+            MinimumSize = new System.Drawing.Size(450, 300);
             youtubeDownload = new YouTubeDownload(); 
             database = new Database(databasePath);
             Update();
+            trackListBox.ContextMenu = new ContextMenu(
+                new MenuItem[]{
+                    new MenuItem("Удалить", (s,ev) => DeleteTrackListBoxItem())
+                }
+            );
+             playlistListBox.ContextMenu = new ContextMenu(
+                new MenuItem[]{
+                    new MenuItem("Удалить", (s,ev) => DeletePlaylistListBoxItem())
+                }
+            );
         }
 
         private async void downloadAudioButton_Click(object sender, EventArgs e)
@@ -32,8 +44,14 @@ namespace Youtube_downloader
                 if(result.Playlist != null) {
                     database.AddPlaylist(result.Playlist);
                 }
-                if (result.Song != null) {
-                    database.AddSong(result.Song);
+                if(result.Song != null) {
+                    if(currentPlaylist != null) {
+                        var newPath = currentPlaylist.directoryPath + "\\" + System.IO.Path.GetFileName(result.Song.filePath);
+                        System.IO.File.Move(result.Song.filePath, newPath);
+                        result.Song.filePath = newPath;
+                        currentPlaylist.songs.Add(result.Song);
+                    }
+                    database.AddSong(result.Song, currentPlaylist);
                 }
             }
             Update();
@@ -59,8 +77,13 @@ namespace Youtube_downloader
         }
 
         private void trackListBox_KeyDown(object sender, KeyEventArgs e) {
-            if (e.KeyCode == Keys.Delete && trackListBox.SelectedIndex != -1) { 
-                e.Handled = true;
+            if (e.KeyCode == Keys.Delete) {
+                DeleteTrackListBoxItem();
+            }
+        }
+
+        private void DeleteTrackListBoxItem() {
+            if (trackListBox.SelectedIndex != -1) {
                 Song song = currentSongs[trackListBox.SelectedIndex];
                 DeleteSong(song);
                 Update();
@@ -96,24 +119,27 @@ namespace Youtube_downloader
             Update();
         }
 
-        private void playlistListBox_KeyDown(object sender, KeyEventArgs e) {
-            if (e.KeyCode == Keys.Delete && playlistListBox.SelectedIndex > 0) {
-                e.Handled = true;
+        private void DeletePlaylistListBoxItem() {
+            if (playlistListBox.SelectedIndex > 0) {
                 Playlist playlist = database.GetPlaylists()[playlistListBox.SelectedIndex - 1];
                 DeletePlaylist(playlist);
                 Update();
             }
         }
 
+        private void playlistListBox_KeyDown(object sender, KeyEventArgs e) {
+            if (e.KeyCode == Keys.Delete) {
+                DeletePlaylistListBoxItem();
+            }
+        }
+
         private void DeleteSong(Song song) {
             database.DeleteSong(song);
-            if (currentSongs.Contains(song)) {
-                currentSongs.Remove(song);
-            }
             if (System.IO.File.Exists(song.filePath)) {
                 System.IO.File.Delete(song.filePath);
             }
-            if (trackListBox.SelectedIndex != -1 && player.currentPlaylist.count > trackListBox.SelectedIndex) {
+            // Удаление песни из player.currentPlaylist, с проверкой на то, что SelectedIndex не выходит за границу списка
+            if (trackListBox.SelectedIndex != -1 && player.currentPlaylist.count > trackListBox.SelectedIndex) { 
                 player.currentPlaylist.removeItem(player.currentPlaylist.Item[trackListBox.SelectedIndex]);
             }
         }
@@ -128,8 +154,27 @@ namespace Youtube_downloader
                 DeleteSong(song);
             }
 
+            // Сброс удалённого плейлиста
             if(currentPlaylist != null && currentPlaylist.id == playlist.id) {
                 currentPlaylist = null;
+            }
+        }
+
+        private void addPlaylistButton_Click(object sender, EventArgs e) {
+            CreatePlaylistForm form = new CreatePlaylistForm(database);
+            form.ShowDialog();
+            Update();
+        }
+
+        private void trackListBox_MouseDown(object sender, MouseEventArgs e) {
+            if(e.Button == MouseButtons.Right) {
+                trackListBox.SelectedIndex = trackListBox.IndexFromPoint(e.Location);
+            }
+        }
+
+        private void playlistListBox_MouseDown(object sender, MouseEventArgs e) {
+            if (e.Button == MouseButtons.Right) {
+                playlistListBox.SelectedIndex = playlistListBox.IndexFromPoint(e.Location);
             }
         }
     }

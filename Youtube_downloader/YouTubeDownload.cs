@@ -9,7 +9,7 @@ using YoutubeDLSharp.Options;
 namespace Youtube_downloader {
     class YouTubeDownload {
         YoutubeDL youtubeDownloader;
-        string sourcePath = @"C:\Users\Home\Desktop\Downloads";
+        public static string sourcePath = @"C:\Users\Home\Desktop\Downloads";
 
         public YouTubeDownload() {
             youtubeDownloader = new YoutubeDL();
