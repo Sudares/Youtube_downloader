@@ -35,18 +35,18 @@
             this.downloadPanel = new System.Windows.Forms.Panel();
             this.addPlaylistButton = new System.Windows.Forms.Button();
             this.enableAudioPanel = new System.Windows.Forms.Panel();
-            this.player = new AxWMPLib.AxWindowsMediaPlayer();
             this.downloadProgressBar = new System.Windows.Forms.ProgressBar();
             this.playlistPanel = new System.Windows.Forms.Panel();
             this.playlistListBox = new System.Windows.Forms.ListBox();
             this.trackListPanel = new System.Windows.Forms.Panel();
             this.trackListBox = new System.Windows.Forms.ListBox();
             this.backgroundWorker1 = new System.ComponentModel.BackgroundWorker();
+            this.player = new AxWMPLib.AxWindowsMediaPlayer();
             this.downloadPanel.SuspendLayout();
             this.enableAudioPanel.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.player)).BeginInit();
             this.playlistPanel.SuspendLayout();
             this.trackListPanel.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.player)).BeginInit();
             this.SuspendLayout();
             // 
             // downloadAudioButton
@@ -109,6 +109,7 @@
             this.addPlaylistButton.TabIndex = 4;
             this.addPlaylistButton.Text = "Добавить плейлист";
             this.addPlaylistButton.UseVisualStyleBackColor = false;
+            this.addPlaylistButton.Click += new System.EventHandler(this.addPlaylistButton_Click);
             // 
             // enableAudioPanel
             // 
@@ -120,16 +121,6 @@
             this.enableAudioPanel.Name = "enableAudioPanel";
             this.enableAudioPanel.Size = new System.Drawing.Size(1004, 65);
             this.enableAudioPanel.TabIndex = 6;
-            // 
-            // player
-            // 
-            this.player.Dock = System.Windows.Forms.DockStyle.Top;
-            this.player.Enabled = true;
-            this.player.Location = new System.Drawing.Point(0, 10);
-            this.player.Name = "player";
-            this.player.OcxState = ((System.Windows.Forms.AxHost.State)(resources.GetObject("player.OcxState")));
-            this.player.Size = new System.Drawing.Size(1004, 46);
-            this.player.TabIndex = 1;
             // 
             // downloadProgressBar
             // 
@@ -189,6 +180,16 @@
             this.trackListBox.DoubleClick += new System.EventHandler(this.trackListBox_DoubleClick);
             this.trackListBox.KeyDown += new System.Windows.Forms.KeyEventHandler(this.trackListBox_KeyDown);
             // 
+            // player
+            // 
+            this.player.Dock = System.Windows.Forms.DockStyle.Top;
+            this.player.Enabled = true;
+            this.player.Location = new System.Drawing.Point(0, 10);
+            this.player.Name = "player";
+            this.player.OcxState = ((System.Windows.Forms.AxHost.State)(resources.GetObject("player.OcxState")));
+            this.player.Size = new System.Drawing.Size(1004, 46);
+            this.player.TabIndex = 1;
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
@@ -203,9 +204,9 @@
             this.downloadPanel.ResumeLayout(false);
             this.downloadPanel.PerformLayout();
             this.enableAudioPanel.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)(this.player)).EndInit();
             this.playlistPanel.ResumeLayout(false);
             this.trackListPanel.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.player)).EndInit();
             this.ResumeLayout(false);
 
         }
