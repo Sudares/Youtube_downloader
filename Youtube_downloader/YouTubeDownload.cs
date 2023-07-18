@@ -6,50 +6,67 @@ using YoutubeDLSharp;
 using YoutubeDLSharp.Metadata;
 using YoutubeDLSharp.Options;
 
-namespace Youtube_downloader {
-    class YouTubeDownload {
-        YoutubeDL youtubeDownloader;
-        public static string sourcePath = @"C:\Users\Home\Desktop\Downloads";
+namespace Youtube_downloader
+{
+    class YouTubeDownload
+    {
+        private readonly string downloadsPath;
+        private readonly string applicationPath;
 
-        public YouTubeDownload() {
+        private readonly YoutubeDL youtubeDownloader;
+
+        public YouTubeDownload(string _downloadsPath, string _applicationPath)
+        {
+            downloadsPath = _downloadsPath;
+            applicationPath = _applicationPath;
+
             youtubeDownloader = new YoutubeDL();
-            youtubeDownloader.YoutubeDLPath = @"C:\Users\Home\source\repos\Youtube_downloader\Youtube_downloader\ytDownloader\yt-dlp.exe";
-            youtubeDownloader.FFmpegPath = @"C:\Users\Home\source\repos\Youtube_downloader\Youtube_downloader\ytDownloader\ffmpeg\bin\ffmpeg.exe";
-            youtubeDownloader.OutputFolder = sourcePath;
+            youtubeDownloader.YoutubeDLPath = $"{applicationPath}\\Youtube_downloader\\ytDownloader\\yt-dlp.exe";
+            youtubeDownloader.FFmpegPath = $"{applicationPath}\\Youtube_downloader\\ytDownloader\\ffmpeg\\bin\\ffmpeg.exe";
+            youtubeDownloader.OutputFolder = downloadsPath;
         }
 
-        public readonly struct DownloadResult {
+        public readonly struct DownloadResult
+        {
             public readonly Playlist Playlist;
             public readonly Song Song;
             public readonly Boolean Success;
 
-            public DownloadResult(Playlist playlist) {
+            public DownloadResult(Playlist playlist)
+            {
                 Playlist = playlist;
                 Song = null;
                 Success = true;
             }
 
-            public DownloadResult(Song song) {
+            public DownloadResult(Song song)
+            {
                 Song = song;
                 Playlist = null;
                 Success = true;
             }
 
-            public DownloadResult(bool success = false) {
+            public DownloadResult(bool success = false)
+            {
                 Success = success;
                 Song = null;
-                Playlist= null;
+                Playlist = null;
             }
         }
-        public async Task<DownloadResult> Download(string link, IProgress<DownloadProgress> progress) {
+        public async Task<DownloadResult> Download(string link, IProgress<DownloadProgress> progress)
+        {
             var result = await youtubeDownloader.RunVideoDataFetch(link); // получаем данные по ссылке
 
-            if(result.Success) {
+            if (result.Success)
+            {
                 var data = result.Data;
-                if(data.Entries == null) {
+                if (data.Entries == null)
+                {
                     var song = await DownloadAudio(data, progress);
                     return new DownloadResult(song);
-                } else {
+                }
+                else
+                {
                     var playlist = await DownloadPlaylist(data, progress);
                     return new DownloadResult(playlist);
                 }
@@ -57,11 +74,12 @@ namespace Youtube_downloader {
             return new DownloadResult();
         }
 
-        private async Task<Song> DownloadAudio(VideoData videoData, IProgress<DownloadProgress> progress) 
+        private async Task<Song> DownloadAudio(VideoData videoData, IProgress<DownloadProgress> progress)
         {
             var url = videoData.Url ?? videoData.WebpageUrl;
             var result = await youtubeDownloader.RunAudioDownload(url, AudioConversionFormat.Mp3, progress: progress);
-            if(result.Success) {
+            if (result.Success)
+            {
                 var song = new Song();
                 song.songName = videoData.Title;
                 song.author = videoData.Channel;
@@ -69,15 +87,18 @@ namespace Youtube_downloader {
                 song.authorUrl = videoData.ChannelUrl;
                 song.filePath = result.Data;
                 return song;
-            } else { 
-                return null; 
+            }
+            else
+            {
+                return null;
             }
         }
 
-        private async Task<Playlist> DownloadPlaylist(VideoData playlistData, IProgress<DownloadProgress> progress) 
+        private async Task<Playlist> DownloadPlaylist(VideoData playlistData, IProgress<DownloadProgress> progress)
         {
             List<Task<Song>> tasks = new List<Task<Song>>();
-            foreach(var videoData in playlistData.Entries) {
+            foreach (var videoData in playlistData.Entries)
+            {
                 tasks.Add(DownloadAudio(videoData, progress));
             }
 
@@ -86,14 +107,16 @@ namespace Youtube_downloader {
             playlist.playlistName = playlistData.Title;
             playlist.playlistUrl = playlistData.Url ?? playlistData.WebpageUrl;
             playlist.songs = songs.ToList();
-            playlist.directoryPath = sourcePath + "\\" + playlist.playlistName;
+            playlist.directoryPath = $@"{downloadsPath}\{playlist.directoryPath}";
 
-            if (!System.IO.Directory.Exists(playlist.directoryPath)) {
+            if (!System.IO.Directory.Exists(playlist.directoryPath))
+            {
                 System.IO.Directory.CreateDirectory(playlist.directoryPath);
             }
 
-            foreach(var song in songs) {
-                var newPath = playlist.directoryPath + "\\" + System.IO.Path.GetFileName(song.filePath);
+            foreach (var song in songs)
+            {
+                var newPath = $@"{playlist.directoryPath}\{System.IO.Path.GetFileName(song.filePath)}";
                 System.IO.File.Move(song.filePath, newPath);
                 song.filePath = newPath;
             }

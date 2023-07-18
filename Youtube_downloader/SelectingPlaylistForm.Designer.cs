@@ -44,7 +44,8 @@
             // 
             // playlistSearchTextBox
             // 
-            this.playlistSearchTextBox.Dock = System.Windows.Forms.DockStyle.Left;
+            this.playlistSearchTextBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.playlistSearchTextBox.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
             this.playlistSearchTextBox.Location = new System.Drawing.Point(0, 0);
             this.playlistSearchTextBox.Multiline = true;

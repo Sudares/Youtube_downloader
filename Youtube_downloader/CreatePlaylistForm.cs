@@ -10,11 +10,14 @@ using System.Windows.Forms;
 
 namespace Youtube_downloader {
     public partial class CreatePlaylistForm : Form {
-        private Database database;
+        private readonly Database database;
+        private readonly string downloadsPath;
 
-        public CreatePlaylistForm(Database _database) {
+        public CreatePlaylistForm(Database _database, string _downloadsPath) {
             InitializeComponent();
+
             database = _database;
+            downloadsPath = _downloadsPath;
         }
 
         private void createNewPlaylistButton_Click(object sender, EventArgs e) {
@@ -24,7 +27,7 @@ namespace Youtube_downloader {
 
             Playlist playlist = new Playlist();
             playlist.playlistName = playlistNameTextBox.Text;
-            playlist.directoryPath = YouTubeDownload.sourcePath + "\\" + playlist.playlistName;
+            playlist.directoryPath = $@"{downloadsPath}\{playlist.playlistName}";
             playlist.songs = new List<Song>();
             playlist.playlistUrl = "";
 

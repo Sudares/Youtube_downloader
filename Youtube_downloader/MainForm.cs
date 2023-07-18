@@ -1,180 +1,265 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
+using System.IO;
+using System.Drawing;
 using System.Windows.Forms;
 using YoutubeDLSharp;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.StartPanel;
 
 namespace Youtube_downloader
 {
     public partial class MainForm : Form
     {
-        YouTubeDownload youtubeDownload;
-        Database database;
-        static string databasePath = @"Data Source=C:\Users\Home\Desktop\Downloads\downloads.sqlite";
+        private readonly string downloadsPath = @"C:\Users\Home\Desktop\Downloads";
+        private readonly string applicationPath = @"C:\Users\Home\source\repos\Youtube_downloader";
+
+        private readonly YouTubeDownload youtubeDownload;
+        private readonly Database database;
         private List<Song> currentSongs;
         private Playlist currentPlaylist;
+
+        private bool playlistListViewSelected => playlistListView.SelectedIndices.Count > 0;
+        private int playlistListViewSelectedIndex => playlistListViewSelected ? playlistListView.SelectedIndices[0] : -1;
+
+        private bool trackListViewSelected => trackListView.SelectedIndices.Count > 0;
+        private int trackListViewSelectedIndex => trackListViewSelected ? trackListView.SelectedIndices[0] : -1;
+
 
         public MainForm()
         {
             InitializeComponent();
-            MinimumSize = new System.Drawing.Size(450, 300);
-            youtubeDownload = new YouTubeDownload(); 
-            database = new Database(databasePath);
-            Update();
-            trackListBox.ContextMenu = new ContextMenu(
-                new MenuItem[]{
-                    new MenuItem("Удалить", (s,ev) => DeleteTrackListBoxItem())
-                }
-            );
-             playlistListBox.ContextMenu = new ContextMenu(
-                new MenuItem[]{
-                    new MenuItem("Удалить", (s,ev) => DeletePlaylistListBoxItem())
-                }
-            );
+
+            if (!Directory.Exists(downloadsPath))
+            {
+                Directory.CreateDirectory(downloadsPath);
+            }
+
+            youtubeDownload = new YouTubeDownload(downloadsPath, applicationPath);
+            database = new Database($"Data Source={downloadsPath}\\downloads.sqlite");
+
+            MinimumSize = new Size(450, 300);
+
+            UpdateView();
         }
 
         private async void downloadAudioButton_Click(object sender, EventArgs e)
         {
-            var progress = new Progress<DownloadProgress>(p => downloadProgressBar.Value = (int)(p.Progress*100));
+            var progress = new Progress<DownloadProgress>(p => downloadProgressBar.Value = (int)(p.Progress * 100));
             var link = linkInputTextBox.Text;
             linkInputTextBox.Text = "";
             var result = await youtubeDownload.Download(link, progress);
-            if(result.Success) {
-                if(result.Playlist != null) {
+            if (result.Success)
+            {
+                if (result.Playlist != null)
+                {
                     database.AddPlaylist(result.Playlist);
                 }
-                if(result.Song != null) {
-                    if(currentPlaylist != null) {
-                        var newPath = currentPlaylist.directoryPath + "\\" + System.IO.Path.GetFileName(result.Song.filePath);
-                        System.IO.File.Move(result.Song.filePath, newPath);
+                if (result.Song != null)
+                {
+                    if (currentPlaylist != null)
+                    {
+                        var newPath = currentPlaylist.directoryPath + "\\" + Path.GetFileName(result.Song.filePath);
+                        File.Move(result.Song.filePath, newPath);
                         result.Song.filePath = newPath;
                         currentPlaylist.songs.Add(result.Song);
                     }
                     database.AddSong(result.Song, currentPlaylist);
                 }
             }
-            Update();
+            UpdateView();
         }
 
-        private void Update() {
-            if(currentPlaylist != null) {
+        private void UpdateView()
+        {
+            if (currentPlaylist != null)
+            {
                 currentSongs = database.GetSongs($"WHERE playlistId = {currentPlaylist.id}");
-            } else {
+            }
+            else
+            {
                 currentSongs = database.GetSongs();
             }
 
-            trackListBox.Items.Clear();
-            foreach (Song item in currentSongs) {
-                trackListBox.Items.Add(item.songName);
+            var songImages = new ImageList();
+            songImages.ImageSize = new Size(64, 64);
+            for (var i = 0; i < currentSongs.Count; i++)
+            {
+                //songImages.Images.Add(new Bitmap("C:\\Users\\One\\Pictures\\жабздец.jpg"));
             }
 
-            playlistListBox.Items.Clear();
-            playlistListBox.Items.Add("Все загруженные песни");
-            foreach (Playlist item in database.GetPlaylists()) {
-                playlistListBox.Items.Add(item.playlistName);
+            var songItems = new List<ListViewItem>();
+            foreach (Song song in currentSongs)
+            {
+                songItems.Add(new ListViewItem(song.songName, 0));
+            }
+
+            var playlistItems = new List<ListViewItem>();
+            playlistItems.Add(new ListViewItem("Все загруженные песни"));
+            foreach (Playlist playlist in database.GetPlaylists())
+            {
+                playlistItems.Add(new ListViewItem(playlist.playlistName, 0));
+            }
+
+            trackListView.Items.Clear();
+            trackListView.SmallImageList = songImages;
+            trackListView.Items.AddRange(songItems.ToArray());
+
+            playlistListView.Items.Clear();
+            playlistListView.Items.AddRange(playlistItems.ToArray());
+        }
+
+        private void trackListView_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Delete)
+            {
+                DeletetrackListViewItem();
             }
         }
 
-        private void trackListBox_KeyDown(object sender, KeyEventArgs e) {
-            if (e.KeyCode == Keys.Delete) {
-                DeleteTrackListBoxItem();
-            }
-        }
-
-        private void DeleteTrackListBoxItem() {
-            if (trackListBox.SelectedIndex != -1) {
-                Song song = currentSongs[trackListBox.SelectedIndex];
+        private void DeletetrackListViewItem()
+        {
+            if (trackListViewSelectedIndex != -1)
+            {
+                Song song = currentSongs[trackListViewSelectedIndex];
                 DeleteSong(song);
-                Update();
+                UpdateView();
             }
         }
 
-        private void trackListBox_DoubleClick(object sender, EventArgs e) {
-            if (trackListBox.SelectedIndex == -1) {
+        private void trackListView_DoubleClick(object sender, EventArgs e)
+        {
+            if (trackListViewSelectedIndex == -1)
+            {
                 return;
             }
 
             player.currentPlaylist = player.newPlaylist("", ""); // создаём плейлист для плеера из списка песен
 
-            foreach (Song item in currentSongs) {
+            foreach (Song item in currentSongs)
+            {
                 player.currentPlaylist.appendItem(player.newMedia(item.filePath)); // добавление медиа в плейлист плеера
             }
 
             // Получаем медиа песни из плейлиста плеера по индексу песни
-            var songMedia = player.currentPlaylist.Item[trackListBox.SelectedIndex];
+            var songMedia = player.currentPlaylist.Item[trackListViewSelectedIndex];
             player.Ctlcontrols.playItem(songMedia); // начинает воспроизводить плейлист с заданной песни
         }
 
-        private void playlistListBox_DoubleClick(object sender, EventArgs e) {
-            if (playlistListBox.SelectedIndex == -1) {
+        private void playlistListView_DoubleClick(object sender, EventArgs e)
+        {
+            if (playlistListViewSelectedIndex == -1)
+            {
                 return;
             }
 
-            if (playlistListBox.SelectedIndex == 0) {
+            if (playlistListViewSelectedIndex == 0)
+            {
                 currentPlaylist = null;
-            } else {
-                currentPlaylist = database.GetPlaylists()[playlistListBox.SelectedIndex - 1];
             }
-            Update();
+            else
+            {
+                currentPlaylist = database.GetPlaylists()[playlistListViewSelectedIndex - 1];
+            }
+            UpdateView();
         }
 
-        private void DeletePlaylistListBoxItem() {
-            if (playlistListBox.SelectedIndex > 0) {
-                Playlist playlist = database.GetPlaylists()[playlistListBox.SelectedIndex - 1];
-                DeletePlaylist(playlist);
-                Update();
+        private void DeletePlaylistListViewItem()
+        {
+            Playlist playlist = database.GetPlaylists()[playlistListViewSelectedIndex - 1];
+            DeletePlaylist(playlist);
+            UpdateView();
+        }
+
+        private void playlistListView_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Delete)
+            {
+                DeletePlaylistListViewItem();
             }
         }
 
-        private void playlistListBox_KeyDown(object sender, KeyEventArgs e) {
-            if (e.KeyCode == Keys.Delete) {
-                DeletePlaylistListBoxItem();
-            }
-        }
-
-        private void DeleteSong(Song song) {
+        private void DeleteSong(Song song)
+        {
             database.DeleteSong(song);
-            if (System.IO.File.Exists(song.filePath)) {
-                System.IO.File.Delete(song.filePath);
+            if (File.Exists(song.filePath))
+            {
+                File.Delete(song.filePath);
             }
             // Удаление песни из player.currentPlaylist, с проверкой на то, что SelectedIndex не выходит за границу списка
-            if (trackListBox.SelectedIndex != -1 && player.currentPlaylist.count > trackListBox.SelectedIndex) { 
-                player.currentPlaylist.removeItem(player.currentPlaylist.Item[trackListBox.SelectedIndex]);
+            if (trackListViewSelectedIndex != -1 && player.currentPlaylist.count > trackListViewSelectedIndex)
+            {
+                player.currentPlaylist.removeItem(player.currentPlaylist.Item[trackListViewSelectedIndex]);
             }
         }
 
-        private void DeletePlaylist(Playlist playlist) {
+        private void DeletePlaylist(Playlist playlist)
+        {
             database.DeletePlaylist(playlist);
-            if (System.IO.Directory.Exists(playlist.directoryPath)) {
-                System.IO.Directory.Delete(playlist.directoryPath, true);
+            if (Directory.Exists(playlist.directoryPath))
+            {
+                Directory.Delete(playlist.directoryPath, true);
             }
 
-            foreach(Song song in playlist.songs) {
+            foreach (Song song in playlist.songs)
+            {
                 DeleteSong(song);
             }
 
             // Сброс удалённого плейлиста
-            if(currentPlaylist != null && currentPlaylist.id == playlist.id) {
+            if (currentPlaylist != null && currentPlaylist.id == playlist.id)
+            {
                 currentPlaylist = null;
             }
         }
 
-        private void addPlaylistButton_Click(object sender, EventArgs e) {
-            CreatePlaylistForm form = new CreatePlaylistForm(database);
+        private void addPlaylistButton_Click(object sender, EventArgs e)
+        {
+            CreatePlaylistForm form = new CreatePlaylistForm(database, downloadsPath);
             form.ShowDialog();
-            Update();
+            UpdateView();
         }
 
-        private void trackListBox_MouseDown(object sender, MouseEventArgs e) {
-            if(e.Button == MouseButtons.Right) {
-                trackListBox.SelectedIndex = trackListBox.IndexFromPoint(e.Location);
+        private void trackListView_MouseDown(object sender, MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Right)
+            {
+                var item = trackListView.GetItemAt(e.Location.X, e.Location.Y);
+                if (item != null)
+                {
+                    trackListView.SelectedIndices.Clear();
+                    trackListView.SelectedIndices.Add(item.Index);
+
+                    trackListView.ContextMenu = new ContextMenu(
+                        new MenuItem[]{
+                            new MenuItem("Удалить", (s, ev) => DeletetrackListViewItem())
+                        }
+                    );
+                } else
+                {
+                    trackListView.ContextMenu = null;
+                }
             }
         }
 
-        private void playlistListBox_MouseDown(object sender, MouseEventArgs e) {
-            if (e.Button == MouseButtons.Right) {
-                playlistListBox.SelectedIndex = playlistListBox.IndexFromPoint(e.Location);
+        private void playlistListView_MouseDown(object sender, MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Right)
+            {
+                var item = playlistListView.GetItemAt(e.Location.X, e.Location.Y);
+                if (item != null)
+                {
+                    playlistListView.SelectedIndices.Clear();
+                    playlistListView.SelectedIndices.Add(item.Index);
+
+                    playlistListView.ContextMenu = new ContextMenu(
+                        new MenuItem[]{
+                            new MenuItem("Удалить", (s, ev) => DeletetrackListViewItem())
+                        }
+                    );
+                }
+                else
+                {
+                    playlistListView.ContextMenu = null;
+                }
             }
         }
     }
