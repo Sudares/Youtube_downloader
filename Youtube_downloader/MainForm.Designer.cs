@@ -38,9 +38,9 @@
             this.trackListPanel = new System.Windows.Forms.Panel();
             this.searchTrackTextBox = new System.Windows.Forms.TextBox();
             this.trackListView = new System.Windows.Forms.ListView();
+            this.columnHeader1 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.backgroundWorker1 = new System.ComponentModel.BackgroundWorker();
             this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
-            this.columnHeader1 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.downloadPanel.SuspendLayout();
             this.enableAudioPanel.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.player)).BeginInit();
@@ -166,6 +166,7 @@
             this.searchPlaylistTextBox.Name = "searchPlaylistTextBox";
             this.searchPlaylistTextBox.Size = new System.Drawing.Size(239, 31);
             this.searchPlaylistTextBox.TabIndex = 1;
+            this.searchPlaylistTextBox.TextChanged += new System.EventHandler(this.searchPlaylistTextBox_TextChanged);
             // 
             // playlistListView
             // 
@@ -210,6 +211,7 @@
             this.searchTrackTextBox.Name = "searchTrackTextBox";
             this.searchTrackTextBox.Size = new System.Drawing.Size(765, 31);
             this.searchTrackTextBox.TabIndex = 2;
+            this.searchTrackTextBox.TextChanged += new System.EventHandler(this.searchTrackTextBox_TextChanged);
             // 
             // trackListView
             // 
@@ -237,15 +239,15 @@
             this.trackListView.KeyDown += new System.Windows.Forms.KeyEventHandler(this.trackListView_KeyDown);
             this.trackListView.MouseDown += new System.Windows.Forms.MouseEventHandler(this.trackListView_MouseDown);
             // 
+            // columnHeader1
+            // 
+            this.columnHeader1.Width = 765;
+            // 
             // contextMenuStrip1
             // 
             this.contextMenuStrip1.ImageScalingSize = new System.Drawing.Size(20, 20);
             this.contextMenuStrip1.Name = "contextMenuStrip1";
             this.contextMenuStrip1.Size = new System.Drawing.Size(61, 4);
-            // 
-            // columnHeader1
-            // 
-            this.columnHeader1.Width = 765;
             // 
             // MainForm
             // 

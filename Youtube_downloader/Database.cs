@@ -77,6 +77,14 @@ namespace Youtube_downloader {
             command.ExecuteNonQuery();
         }
 
+        private void Update(string tableName, int id, string field, object value) {
+            var command = connection.CreateCommand();
+            command.CommandText = $"UPDATE {tableName} SET {field} = $value WHERE id = $id";
+            command.Parameters.AddWithValue("$id", id);
+            command.Parameters.AddWithValue("$value", value);
+            command.ExecuteNonQuery();
+        }
+
         public List<Playlist> GetPlaylists() {
             var rows = Select("playlists", new string[]{"id", "playlistName", "playlistUrl", "directoryPath"});
             var playlists = new List<Playlist>();
@@ -128,6 +136,14 @@ namespace Youtube_downloader {
 
         public void DeletePlaylist(Playlist playlist) {
             Delete("playlists", playlist.id);
+        }
+
+        public void UpdateSongPlaylist(Song song, Playlist playlist) {
+            Update("songs", song.id, "playlistId", playlist.id);
+        }
+
+        public void UpdateSongPath(Song song, string path) {
+            Update("songs", song.id, "filePath", path);
         }
     }
 }

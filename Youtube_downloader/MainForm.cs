@@ -4,6 +4,7 @@ using System.IO;
 using System.Drawing;
 using System.Windows.Forms;
 using YoutubeDLSharp;
+using System.Linq;
 
 namespace Youtube_downloader
 {
@@ -16,6 +17,7 @@ namespace Youtube_downloader
         private readonly Database database;
         private List<Song> currentSongs;
         private Playlist currentPlaylist;
+        private List<Playlist> currentPlaylists;
 
         private bool playlistListViewSelected => playlistListView.SelectedIndices.Count > 0;
         private int playlistListViewSelectedIndex => playlistListViewSelected ? playlistListView.SelectedIndices[0] : -1;
@@ -79,12 +81,23 @@ namespace Youtube_downloader
                 currentSongs = database.GetSongs();
             }
 
-            var songImages = new ImageList();
-            songImages.ImageSize = new Size(64, 64);
-            for (var i = 0; i < currentSongs.Count; i++)
-            {
-                //songImages.Images.Add(new Bitmap("C:\\Users\\One\\Pictures\\жабздец.jpg"));
+            currentPlaylists = database.GetPlaylists();
+
+            var songsSearch = searchTrackTextBox.Text.Trim().ToLower();
+            if (songsSearch.Length > 0) {
+                currentSongs = currentSongs.Where(song => song.songName.ToLower().Contains(songsSearch)).ToList();
             }
+
+            var playlistsSearch = searchPlaylistTextBox.Text.Trim().ToLower();
+            if (playlistsSearch.Length > 0) {
+                currentPlaylists = currentPlaylists.Where(playlist => playlist.playlistName.ToLower().Contains(playlistsSearch)).ToList();
+            }
+            //var songImages = new ImageList();
+            //songImages.ImageSize = new Size(64, 64);
+            //for (var i = 0; i < currentSongs.Count; i++)
+            //{
+            //songImages.Images.Add(new Bitmap("C:\\Users\\One\\Pictures\\жабздец.jpg"));
+            //}
 
             var songItems = new List<ListViewItem>();
             foreach (Song song in currentSongs)
@@ -94,13 +107,13 @@ namespace Youtube_downloader
 
             var playlistItems = new List<ListViewItem>();
             playlistItems.Add(new ListViewItem("Все загруженные песни"));
-            foreach (Playlist playlist in database.GetPlaylists())
+            foreach (Playlist playlist in currentPlaylists)
             {
                 playlistItems.Add(new ListViewItem(playlist.playlistName, 0));
             }
 
             trackListView.Items.Clear();
-            trackListView.SmallImageList = songImages;
+            //trackListView.SmallImageList = songImages;
             trackListView.Items.AddRange(songItems.ToArray());
 
             playlistListView.Items.Clear();
@@ -121,6 +134,18 @@ namespace Youtube_downloader
             {
                 Song song = currentSongs[trackListViewSelectedIndex];
                 DeleteSong(song);
+                UpdateView();
+            }
+        }
+
+        private void MovetrackListViewItem() {
+            if (trackListViewSelectedIndex != -1) {
+                Song song = currentSongs[trackListViewSelectedIndex];
+                var selectingPlaylistForm = new SelectingPlaylistForm(database);
+                selectingPlaylistForm.ShowDialog();
+                if(selectingPlaylistForm.selectedPlaylist != null) {
+                    MoveSongToPlaylist(song, selectingPlaylistForm.selectedPlaylist);
+                }
                 UpdateView();
             }
         }
@@ -191,6 +216,14 @@ namespace Youtube_downloader
             }
         }
 
+        private void MoveSongToPlaylist(Song song, Playlist playlist) {
+            database.UpdateSongPlaylist(song, playlist);
+            var newPath = $@"{playlist.directoryPath}\{Path.GetFileName(song.filePath)}";
+            File.Move(song.filePath, newPath);
+            song.filePath = newPath;
+            database.UpdateSongPath(song, newPath);
+        }
+
         private void DeletePlaylist(Playlist playlist)
         {
             database.DeletePlaylist(playlist);
@@ -230,6 +263,7 @@ namespace Youtube_downloader
 
                     trackListView.ContextMenu = new ContextMenu(
                         new MenuItem[]{
+                           new MenuItem("Добавить в", (s, ev) => MovetrackListViewItem()),
                             new MenuItem("Удалить", (s, ev) => DeletetrackListViewItem())
                         }
                     );
@@ -261,6 +295,14 @@ namespace Youtube_downloader
                     playlistListView.ContextMenu = null;
                 }
             }
+        }
+
+        private void searchTrackTextBox_TextChanged(object sender, EventArgs e) {
+            UpdateView();
+        }
+
+        private void searchPlaylistTextBox_TextChanged(object sender, EventArgs e) {
+            UpdateView();
         }
     }
 }
