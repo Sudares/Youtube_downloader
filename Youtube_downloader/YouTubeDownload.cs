@@ -102,12 +102,13 @@ namespace Youtube_downloader
                 tasks.Add(DownloadAudio(videoData, progress));
             }
 
-            var songs = await Task.WhenAll(tasks);
+            var songs = (await Task.WhenAll(tasks)).ToList();
+            songs = songs.Where(song => song != null).ToList();
             var playlist = new Playlist();
             playlist.playlistName = playlistData.Title;
             playlist.playlistUrl = playlistData.Url ?? playlistData.WebpageUrl;
             playlist.songs = songs.ToList();
-            playlist.directoryPath = $@"{downloadsPath}\{playlist.directoryPath}";
+            playlist.directoryPath = $@"{downloadsPath}\{playlist.playlistName}";
 
             if (!System.IO.Directory.Exists(playlist.directoryPath))
             {
@@ -116,6 +117,10 @@ namespace Youtube_downloader
 
             foreach (var song in songs)
             {
+                if(song == null) {
+                    continue;
+                }
+
                 var newPath = $@"{playlist.directoryPath}\{System.IO.Path.GetFileName(song.filePath)}";
                 System.IO.File.Move(song.filePath, newPath);
                 song.filePath = newPath;

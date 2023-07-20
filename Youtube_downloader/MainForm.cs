@@ -5,15 +5,16 @@ using System.Drawing;
 using System.Windows.Forms;
 using YoutubeDLSharp;
 using System.Linq;
+using Microsoft.Win32;
 
 namespace Youtube_downloader
 {
     public partial class MainForm : Form
     {
-        private readonly string downloadsPath = @"C:\Users\Home\Desktop\Downloads";
-        private readonly string applicationPath = @"C:\Users\Home\source\repos\Youtube_downloader";
+        private string downloadsPath;
+        private readonly string applicationPath;
 
-        private readonly YouTubeDownload youtubeDownload;
+        private  YouTubeDownload youtubeDownload;
         private readonly Database database;
         private List<Song> currentSongs;
         private Playlist currentPlaylist;
@@ -30,17 +31,30 @@ namespace Youtube_downloader
         {
             InitializeComponent();
 
+            if (File.Exists(Path.Combine(Application.UserAppDataPath, "downloadsPath.txt"))) {
+                downloadsPath = File.ReadAllText(Path.Combine(Application.UserAppDataPath, "downloadsPath.txt"));
+            } else {
+                downloadsPath = GetDownloadFolderPath();
+            }
+
+            applicationPath = Directory.GetParent(Directory.GetParent(Directory.GetParent(Application.StartupPath).ToString()).ToString()).ToString();
+
             if (!Directory.Exists(downloadsPath))
             {
                 Directory.CreateDirectory(downloadsPath);
             }
 
             youtubeDownload = new YouTubeDownload(downloadsPath, applicationPath);
-            database = new Database($"Data Source={downloadsPath}\\downloads.sqlite");
+            database = new Database($"Data Source={Application.UserAppDataPath}\\downloads.sqlite");
 
             MinimumSize = new Size(450, 300);
 
             UpdateView();
+        }
+
+        string GetDownloadFolderPath() {
+            return Registry.GetValue(@"HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders", 
+                                      "{374DE290-123F-4565-9164-39C4925E467B}", String.Empty).ToString();
         }
 
         private async void downloadAudioButton_Click(object sender, EventArgs e)
@@ -303,6 +317,17 @@ namespace Youtube_downloader
 
         private void searchPlaylistTextBox_TextChanged(object sender, EventArgs e) {
             UpdateView();
+        }
+
+        private void выбратьПутьДляСохраненияToolStripMenuItem_Click(object sender, EventArgs e) {
+            using (var dialog = new FolderBrowserDialog()) {
+                var res = dialog.ShowDialog();
+                if (res == DialogResult.OK && !string.IsNullOrWhiteSpace(dialog.SelectedPath)) {
+                    File.WriteAllText(Path.Combine(Application.UserAppDataPath, "downloadsPath.txt"), dialog.SelectedPath);
+                    downloadsPath = dialog.SelectedPath;
+                    youtubeDownload = new YouTubeDownload(downloadsPath, applicationPath);
+                }
+            }
         }
     }
 }
