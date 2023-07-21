@@ -59,20 +59,20 @@ namespace Youtube_downloader
 
         private async void downloadAudioButton_Click(object sender, EventArgs e)
         {
-            var progress = new Progress<DownloadProgress>(p => downloadProgressBar.Value = (int)(p.Progress * 100));
             var link = linkInputTextBox.Text;
             linkInputTextBox.Text = "";
+            Download(link);
+        }
+
+        private async void Download(string link) {
+            var progress = new Progress<DownloadProgress>(p => downloadProgressBar.Value = (int)(p.Progress * 100));
             var result = await youtubeDownload.Download(link, progress);
-            if (result.Success)
-            {
-                if (result.Playlist != null)
-                {
+            if (result.Success) {
+                if (result.Playlist != null) {
                     database.AddPlaylist(result.Playlist);
                 }
-                if (result.Song != null)
-                {
-                    if (currentPlaylist != null)
-                    {
+                if (result.Song != null) {
+                    if (currentPlaylist != null) {
                         var newPath = currentPlaylist.directoryPath + "\\" + Path.GetFileName(result.Song.filePath);
                         File.Move(result.Song.filePath, newPath);
                         result.Song.filePath = newPath;
@@ -328,6 +328,12 @@ namespace Youtube_downloader
                     youtubeDownload = new YouTubeDownload(downloadsPath, applicationPath);
                 }
             }
+        }
+
+        private void выбратьВБраузереToolStripMenuItem_Click(object sender, EventArgs e) {
+            var form = new BrowserForm();
+            form.SelectedUrlChanged += (s, url) => Download(url);
+            form.Show();
         }
     }
 }

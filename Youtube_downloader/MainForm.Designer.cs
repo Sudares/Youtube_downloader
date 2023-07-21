@@ -28,6 +28,9 @@
             this.linkInputTextBox = new System.Windows.Forms.TextBox();
             this.downloadPanel = new System.Windows.Forms.Panel();
             this.addPlaylistButton = new System.Windows.Forms.Button();
+            this.menuStrip1 = new System.Windows.Forms.MenuStrip();
+            this.настройкиToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.выбратьПутьДляСохраненияToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.enableAudioPanel = new System.Windows.Forms.Panel();
             this.player = new AxWMPLib.AxWindowsMediaPlayer();
             this.downloadProgressBar = new System.Windows.Forms.ProgressBar();
@@ -39,15 +42,13 @@
             this.trackListView = new System.Windows.Forms.ListView();
             this.columnHeader1 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.backgroundWorker1 = new System.ComponentModel.BackgroundWorker();
-            this.menuStrip1 = new System.Windows.Forms.MenuStrip();
-            this.настройкиToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.выбратьПутьДляСохраненияToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.выбратьВБраузереToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.downloadPanel.SuspendLayout();
+            this.menuStrip1.SuspendLayout();
             this.enableAudioPanel.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.player)).BeginInit();
             this.playlistPanel.SuspendLayout();
             this.trackListPanel.SuspendLayout();
-            this.menuStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
             // downloadAudioButton
@@ -112,6 +113,34 @@
             this.addPlaylistButton.Text = "Добавить плейлист";
             this.addPlaylistButton.UseVisualStyleBackColor = false;
             this.addPlaylistButton.Click += new System.EventHandler(this.addPlaylistButton_Click);
+            // 
+            // menuStrip1
+            // 
+            this.menuStrip1.ImageScalingSize = new System.Drawing.Size(20, 20);
+            this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.настройкиToolStripMenuItem,
+            this.выбратьВБраузереToolStripMenuItem});
+            this.menuStrip1.Location = new System.Drawing.Point(0, 0);
+            this.menuStrip1.Name = "menuStrip1";
+            this.menuStrip1.RenderMode = System.Windows.Forms.ToolStripRenderMode.System;
+            this.menuStrip1.Size = new System.Drawing.Size(1004, 28);
+            this.menuStrip1.TabIndex = 5;
+            this.menuStrip1.Text = "menuStrip1";
+            // 
+            // настройкиToolStripMenuItem
+            // 
+            this.настройкиToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.выбратьПутьДляСохраненияToolStripMenuItem});
+            this.настройкиToolStripMenuItem.Name = "настройкиToolStripMenuItem";
+            this.настройкиToolStripMenuItem.Size = new System.Drawing.Size(98, 26);
+            this.настройкиToolStripMenuItem.Text = "Настройки";
+            // 
+            // выбратьПутьДляСохраненияToolStripMenuItem
+            // 
+            this.выбратьПутьДляСохраненияToolStripMenuItem.Name = "выбратьПутьДляСохраненияToolStripMenuItem";
+            this.выбратьПутьДляСохраненияToolStripMenuItem.Size = new System.Drawing.Size(301, 26);
+            this.выбратьПутьДляСохраненияToolStripMenuItem.Text = "Выбрать путь для сохранения";
+            this.выбратьПутьДляСохраненияToolStripMenuItem.Click += new System.EventHandler(this.выбратьПутьДляСохраненияToolStripMenuItem_Click);
             // 
             // enableAudioPanel
             // 
@@ -246,32 +275,12 @@
             // 
             this.columnHeader1.Width = 765;
             // 
-            // menuStrip1
+            // выбратьВБраузереToolStripMenuItem
             // 
-            this.menuStrip1.ImageScalingSize = new System.Drawing.Size(20, 20);
-            this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.настройкиToolStripMenuItem});
-            this.menuStrip1.Location = new System.Drawing.Point(0, 0);
-            this.menuStrip1.Name = "menuStrip1";
-            this.menuStrip1.RenderMode = System.Windows.Forms.ToolStripRenderMode.System;
-            this.menuStrip1.Size = new System.Drawing.Size(1004, 28);
-            this.menuStrip1.TabIndex = 5;
-            this.menuStrip1.Text = "menuStrip1";
-            // 
-            // настройкиToolStripMenuItem
-            // 
-            this.настройкиToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.выбратьПутьДляСохраненияToolStripMenuItem});
-            this.настройкиToolStripMenuItem.Name = "настройкиToolStripMenuItem";
-            this.настройкиToolStripMenuItem.Size = new System.Drawing.Size(98, 24);
-            this.настройкиToolStripMenuItem.Text = "Настройки";
-            // 
-            // выбратьПутьДляСохраненияToolStripMenuItem
-            // 
-            this.выбратьПутьДляСохраненияToolStripMenuItem.Name = "выбратьПутьДляСохраненияToolStripMenuItem";
-            this.выбратьПутьДляСохраненияToolStripMenuItem.Size = new System.Drawing.Size(301, 26);
-            this.выбратьПутьДляСохраненияToolStripMenuItem.Text = "Выбрать путь для сохранения";
-            this.выбратьПутьДляСохраненияToolStripMenuItem.Click += new System.EventHandler(this.выбратьПутьДляСохраненияToolStripMenuItem_Click);
+            this.выбратьВБраузереToolStripMenuItem.Name = "выбратьВБраузереToolStripMenuItem";
+            this.выбратьВБраузереToolStripMenuItem.Size = new System.Drawing.Size(164, 24);
+            this.выбратьВБраузереToolStripMenuItem.Text = "Выбрать в браузере";
+            this.выбратьВБраузереToolStripMenuItem.Click += new System.EventHandler(this.выбратьВБраузереToolStripMenuItem_Click);
             // 
             // MainForm
             // 
@@ -288,14 +297,14 @@
             this.Name = "MainForm";
             this.downloadPanel.ResumeLayout(false);
             this.downloadPanel.PerformLayout();
+            this.menuStrip1.ResumeLayout(false);
+            this.menuStrip1.PerformLayout();
             this.enableAudioPanel.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.player)).EndInit();
             this.playlistPanel.ResumeLayout(false);
             this.playlistPanel.PerformLayout();
             this.trackListPanel.ResumeLayout(false);
             this.trackListPanel.PerformLayout();
-            this.menuStrip1.ResumeLayout(false);
-            this.menuStrip1.PerformLayout();
             this.ResumeLayout(false);
 
         }
@@ -320,5 +329,6 @@
         private System.Windows.Forms.MenuStrip menuStrip1;
         private System.Windows.Forms.ToolStripMenuItem настройкиToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem выбратьПутьДляСохраненияToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem выбратьВБраузереToolStripMenuItem;
     }
 }
