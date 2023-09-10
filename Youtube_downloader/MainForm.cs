@@ -300,7 +300,7 @@ namespace Youtube_downloader
 
                     playlistListView.ContextMenu = new ContextMenu(
                         new MenuItem[]{
-                            new MenuItem("Удалить", (s, ev) => DeletetrackListViewItem())
+                            new MenuItem("Удалить", (s, ev) => DeletePlaylistListViewItem())
                         }
                     );
                 }
