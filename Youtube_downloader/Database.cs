@@ -26,6 +26,7 @@ namespace Youtube_downloader {
                                               "authorUrl VARCHAR",
                                               "filePath VARCHAR",
                                               "playlistId INT",
+                                              "progress INT",
                                               "FOREIGN KEY (playlistId) REFERENCES Playlist(id)"});
         }
 
@@ -101,7 +102,7 @@ namespace Youtube_downloader {
         }
 
         public List<Song> GetSongs(string additional = "") {
-            var rows = Select("songs", new string[] {"id", "songName", "author", "url", "authorUrl", "filePath", "playlistId"}, additional);
+            var rows = Select("songs", new string[] {"id", "songName", "author", "url", "authorUrl", "filePath", "progress"}, additional);
             var songs = new List<Song>();
             foreach (var row in rows) {
                 var song = new Song();
@@ -111,23 +112,20 @@ namespace Youtube_downloader {
                 song.url = row[3];
                 song.authorUrl = row[4];
                 song.filePath = row[5];
+                song.progress = int.Parse(row[6]);
                 songs.Add(song);
             }
             return songs;
         }
 
-        public int AddSong(Song song, Playlist playlist = null) { // добавление песни в базу данных
-            return InsertInto("songs", new string[]{"songName", "author", "url", "authorUrl", "filePath", "playlistId"}, 
-                                            new object[]{song.songName, song.author, song.url, song.authorUrl, song.filePath, playlist?.id});
+        public void AddSong(Song song, Playlist playlist = null) { // добавление песни в базу данных
+            song.id = InsertInto("songs", new string[]{"songName", "author", "url", "authorUrl", "filePath", "playlistId", "progress"}, 
+                                            new object[]{song.songName, song.author, song.url, song.authorUrl, song.filePath, playlist?.id, song.progress});
         }
 
-        public int AddPlaylist(Playlist playlist) { // добавление плейлиста в базу данных
-            playlist.id = InsertInto("playlists", new string[]{"playlistName", "playlistUrl", "directoryPath"}, 
-                       new object[]{playlist.playlistName, playlist.playlistUrl, playlist.directoryPath});
-            foreach (var song in playlist.songs) { // добавление песен плейлиста в базу данных
-                AddSong(song, playlist);
-            }
-            return playlist.id;
+        public void AddPlaylist(Playlist playlist) { // добавление плейлиста в базу данных
+            playlist.id = InsertInto("playlists", new string[] { "playlistName", "playlistUrl", "directoryPath" },
+                       new object[] { playlist.playlistName, playlist.playlistUrl, playlist.directoryPath });
         }
 
         public void DeleteSong(Song song) {
@@ -144,6 +142,11 @@ namespace Youtube_downloader {
 
         public void UpdateSongPath(Song song, string path) {
             Update("songs", song.id, "filePath", path);
+        }
+
+        public void UpdateSongProgress(Song song, int progress)
+        {
+            Update("songs", song.id, "progress", progress);
         }
     }
 }

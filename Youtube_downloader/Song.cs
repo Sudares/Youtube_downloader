@@ -8,5 +8,6 @@ namespace Youtube_downloader {
         public string url;
         public string authorUrl;
         public string filePath;
+        public int progress;
     }
 }

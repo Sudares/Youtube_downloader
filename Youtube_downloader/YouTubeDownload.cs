@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using YoutubeDLSharp;
 using YoutubeDLSharp.Metadata;
@@ -10,120 +12,152 @@ namespace Youtube_downloader
 {
     class YouTubeDownload
     {
-        private readonly string downloadsPath;
+        public string DownloadsPath { get; set; }
         private readonly string applicationPath;
-
         private readonly YoutubeDL youtubeDownloader;
+
+        readonly Dictionary<int, CancellationTokenSource> songsCancelTokens = new Dictionary<int, CancellationTokenSource>();
+
+        public delegate void SongHandler(Song song);
+        public event SongHandler OnCreateSong;
+        public event SongHandler OnUpdateSongProgress;
+        public event SongHandler OnUpdateSongPath;
+        public event SongHandler OnDeleteSong;
+
+        public delegate void PlaylistHandler(Playlist playlist);
+        public event PlaylistHandler OnCreatePlaylist;
+        public event PlaylistHandler OnDeletePlaylist;
 
         public YouTubeDownload(string _downloadsPath, string _applicationPath)
         {
-            downloadsPath = _downloadsPath;
+            DownloadsPath = _downloadsPath;
             applicationPath = _applicationPath;
 
-            youtubeDownloader = new YoutubeDL();
-            youtubeDownloader.YoutubeDLPath = $"{applicationPath}\\Youtube_downloader\\ytDownloader\\yt-dlp.exe";
-            youtubeDownloader.FFmpegPath = $"{applicationPath}\\Youtube_downloader\\ytDownloader\\ffmpeg\\bin\\ffmpeg.exe";
-            youtubeDownloader.OutputFolder = downloadsPath;
+            youtubeDownloader = new YoutubeDL
+            {
+                YoutubeDLPath = $"{applicationPath}\\Youtube_downloader\\ytDownloader\\yt-dlp.exe",
+                FFmpegPath = $"{applicationPath}\\Youtube_downloader\\ytDownloader\\ffmpeg\\bin\\ffmpeg.exe",
+                OutputFolder = DownloadsPath
+            };
         }
 
-        public readonly struct DownloadResult
-        {
-            public readonly Playlist Playlist;
-            public readonly Song Song;
-            public readonly Boolean Success;
-
-            public DownloadResult(Playlist playlist)
-            {
-                Playlist = playlist;
-                Song = null;
-                Success = true;
-            }
-
-            public DownloadResult(Song song)
-            {
-                Song = song;
-                Playlist = null;
-                Success = true;
-            }
-
-            public DownloadResult(bool success = false)
-            {
-                Success = success;
-                Song = null;
-                Playlist = null;
+        public void CancelDownload(Song song) {
+            if(songsCancelTokens.ContainsKey(song.id)) {
+                var sct = songsCancelTokens[song.id];
+                sct.Cancel();
             }
         }
-        public async Task<DownloadResult> Download(string link, IProgress<DownloadProgress> progress)
-        {
-            var result = await youtubeDownloader.RunVideoDataFetch(link); // получаем данные по ссылке
 
-            if (result.Success)
+        public void CancelDownload(Playlist playlist)
+        {
+            foreach(var song in playlist.songs)
             {
-                var data = result.Data;
-                if (data.Entries == null)
-                {
-                    var song = await DownloadAudio(data, progress);
-                    return new DownloadResult(song);
-                }
-                else
-                {
-                    var playlist = await DownloadPlaylist(data, progress);
-                    return new DownloadResult(playlist);
-                }
+                CancelDownload(song);
             }
-            return new DownloadResult();
         }
 
-        private async Task<Song> DownloadAudio(VideoData videoData, IProgress<DownloadProgress> progress)
+        public async void Download(string link)
         {
-            var url = videoData.Url ?? videoData.WebpageUrl;
-            var result = await youtubeDownloader.RunAudioDownload(url, AudioConversionFormat.Mp3, progress: progress);
-            if (result.Success)
+            var result = await youtubeDownloader.RunVideoDataFetch(link);
+            if (!result.Success)
             {
-                var song = new Song();
-                song.songName = videoData.Title;
-                song.author = videoData.Channel;
-                song.url = url;
-                song.authorUrl = videoData.ChannelUrl;
-                song.filePath = result.Data;
-                return song;
+                return;
+            }
+
+            var data = result.Data;
+            if (data.Entries == null)
+            {
+                await DownloadAudio(data);
             }
             else
             {
-                return null;
+                await DownloadPlaylist(data);
             }
         }
 
-        private async Task<Playlist> DownloadPlaylist(VideoData playlistData, IProgress<DownloadProgress> progress)
+        private async Task DownloadAudio(VideoData videoData, Playlist playlist = null)
         {
-            List<Task<Song>> tasks = new List<Task<Song>>();
-            foreach (var videoData in playlistData.Entries)
+            var song = new Song
             {
-                tasks.Add(DownloadAudio(videoData, progress));
-            }
+                songName = videoData.Title,
+                author = videoData.Channel,
+                url = videoData.Url ?? videoData.WebpageUrl,
+                authorUrl = videoData.ChannelUrl,
+                progress = 0
+            };
 
-            var songs = (await Task.WhenAll(tasks)).ToList();
-            songs = songs.Where(song => song != null).ToList();
-            var playlist = new Playlist();
-            playlist.playlistName = playlistData.Title;
-            playlist.playlistUrl = playlistData.Url ?? playlistData.WebpageUrl;
-            playlist.songs = songs.ToList();
-            playlist.directoryPath = $@"{downloadsPath}\{playlist.playlistName}";
+            OnCreateSong?.Invoke(song);
 
-            if (!System.IO.Directory.Exists(playlist.directoryPath))
+            var cts = new CancellationTokenSource();
+            songsCancelTokens[song.id] = cts;
+
+            try
             {
-                System.IO.Directory.CreateDirectory(playlist.directoryPath);
-            }
+                var result = await youtubeDownloader.RunAudioDownload(
+                    song.url,
+                    AudioConversionFormat.Mp3, // TODO: Настройка "В каком формате хотите сохранять файлы
+                    ct: cts.Token,
+                    progress: new Progress<DownloadProgress>(p => {
+                        song.progress = (int)(p.Progress * 100);
+                        OnUpdateSongProgress?.Invoke(song);
+                    }),
+                    overrideOptions: new OptionSet()
+                    {
+                        Continue = true,
+                        Output = Path.Combine(
+                            playlist?.directoryPath ?? DownloadsPath,
+                            youtubeDownloader.OutputFileTemplate
+                        )
+                    }
+                );
 
-            foreach (var song in songs)
-            {
-                if(song == null) {
-                    continue;
+                if (!result.Success)
+                {
+                    OnDeleteSong?.Invoke(song);
+                    return;
                 }
 
-                var newPath = $@"{playlist.directoryPath}\{System.IO.Path.GetFileName(song.filePath)}";
-                System.IO.File.Move(song.filePath, newPath);
-                song.filePath = newPath;
+                song.progress = 100;
+                OnUpdateSongProgress?.Invoke(song);
+
+                song.filePath = result.Data;
+                OnUpdateSongPath?.Invoke(song);
+            } catch (Exception e)
+            {
+                OnDeleteSong?.Invoke(song);
+            }
+        }
+
+        private async Task<Playlist> DownloadPlaylist(VideoData playlistData)
+        {
+            var playlist = new Playlist
+            {
+                playlistName = playlistData.Title,
+                playlistUrl = playlistData.Url ?? playlistData.WebpageUrl,
+                directoryPath = $@"{DownloadsPath}\{playlistData.Title}"
+            };
+
+            OnCreatePlaylist?.Invoke(playlist);
+
+            if (!Directory.Exists(playlist.directoryPath))
+            {
+                Directory.CreateDirectory(playlist.directoryPath);
+            }
+
+            List<Task> tasks = new List<Task>();
+            foreach (var videoData in playlistData.Entries)
+            {
+                tasks.Add(DownloadAudio(videoData, playlist));
+            }
+
+            try
+            {
+                await Task.WhenAll(tasks);
+            }
+            catch (Exception)
+            {
+                OnDeletePlaylist?.Invoke(playlist);
+                throw;
             }
 
             return playlist;

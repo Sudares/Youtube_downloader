@@ -11,25 +11,29 @@ namespace Youtube_downloader
 {
     public partial class MainForm : Form
     {
-        private string downloadsPath;
+        private readonly string downloadsPath;
         private readonly string applicationPath;
 
-        private  YouTubeDownload youtubeDownload;
+        private readonly YouTubeDownload youtubeDownload;
         private readonly Database database;
         private List<Song> currentSongs;
         private Playlist currentPlaylist;
         private List<Playlist> currentPlaylists;
 
-        private bool playlistListViewSelected => playlistListView.SelectedIndices.Count > 0;
-        private int playlistListViewSelectedIndex => playlistListViewSelected ? playlistListView.SelectedIndices[0] : -1;
+        private bool PlaylistListViewSelected => playlistListView.SelectedIndices.Count > 0;
+        private int PlaylistListViewSelectedIndex => PlaylistListViewSelected ? playlistListView.SelectedIndices[0] : -1;
 
-        private bool trackListViewSelected => trackListView.SelectedIndices.Count > 0;
-        private int trackListViewSelectedIndex => trackListViewSelected ? trackListView.SelectedIndices[0] : -1;
+        private bool TrackListViewSelected => trackListView.SelectedIndices.Count > 0;
+        private int TrackListViewSelectedIndex => TrackListViewSelected ? trackListView.SelectedIndices[0] : -1;
 
 
         public MainForm()
         {
             InitializeComponent();
+
+            MinimumSize = new Size(450, 300);
+
+            var dataPath = Application.UserAppDataPath;
 
             if (File.Exists(Path.Combine(Application.UserAppDataPath, "downloadsPath.txt"))) {
                 downloadsPath = File.ReadAllText(Path.Combine(Application.UserAppDataPath, "downloadsPath.txt"));
@@ -44,10 +48,35 @@ namespace Youtube_downloader
                 Directory.CreateDirectory(downloadsPath);
             }
 
-            youtubeDownload = new YouTubeDownload(downloadsPath, applicationPath);
             database = new Database($"Data Source={Application.UserAppDataPath}\\downloads.sqlite");
 
-            MinimumSize = new Size(450, 300);
+            youtubeDownload = new YouTubeDownload(downloadsPath, applicationPath);
+
+            youtubeDownload.OnCreateSong += (Song song) => {
+                database.AddSong(song);
+                UpdateView();
+            };
+            youtubeDownload.OnUpdateSongProgress += (Song song) => {
+                database.UpdateSongProgress(song, song.progress);
+                //UpdateView(); // TODO: Fix it
+            };
+            youtubeDownload.OnUpdateSongPath += (Song song) => {
+                database.UpdateSongPath(song, song.filePath);
+                UpdateView();
+            };
+            youtubeDownload.OnDeleteSong += (Song song) => {
+                database.DeleteSong(song);
+                UpdateView();
+            };
+
+            youtubeDownload.OnCreatePlaylist += (Playlist playlist) => {
+                database.AddPlaylist(playlist);
+                UpdateView();
+            };
+            youtubeDownload.OnDeletePlaylist += (Playlist playlist) => {
+                database.DeletePlaylist(playlist);
+                UpdateView();
+            };
 
             UpdateView();
         }
@@ -64,24 +93,8 @@ namespace Youtube_downloader
             Download(link);
         }
 
-        private async void Download(string link) {
-            var progress = new Progress<DownloadProgress>(p => downloadProgressBar.Value = (int)(p.Progress * 100));
-            var result = await youtubeDownload.Download(link, progress);
-            if (result.Success) {
-                if (result.Playlist != null) {
-                    database.AddPlaylist(result.Playlist);
-                }
-                if (result.Song != null) {
-                    if (currentPlaylist != null) {
-                        var newPath = currentPlaylist.directoryPath + "\\" + Path.GetFileName(result.Song.filePath);
-                        File.Move(result.Song.filePath, newPath);
-                        result.Song.filePath = newPath;
-                        currentPlaylist.songs.Add(result.Song);
-                    }
-                    database.AddSong(result.Song, currentPlaylist);
-                }
-            }
-            UpdateView();
+        private void Download(string link) {
+            youtubeDownload.Download(link);
         }
 
         private void UpdateView()
@@ -144,17 +157,17 @@ namespace Youtube_downloader
 
         private void DeletetrackListViewItem()
         {
-            if (trackListViewSelectedIndex != -1)
+            if (TrackListViewSelectedIndex != -1)
             {
-                Song song = currentSongs[trackListViewSelectedIndex];
+                Song song = currentSongs[TrackListViewSelectedIndex];
                 DeleteSong(song);
                 UpdateView();
             }
         }
 
         private void MovetrackListViewItem() {
-            if (trackListViewSelectedIndex != -1) {
-                Song song = currentSongs[trackListViewSelectedIndex];
+            if (TrackListViewSelectedIndex != -1) {
+                Song song = currentSongs[TrackListViewSelectedIndex];
                 var selectingPlaylistForm = new SelectingPlaylistForm(database);
                 selectingPlaylistForm.ShowDialog();
                 if(selectingPlaylistForm.selectedPlaylist != null) {
@@ -166,7 +179,7 @@ namespace Youtube_downloader
 
         private void trackListView_DoubleClick(object sender, EventArgs e)
         {
-            if (trackListViewSelectedIndex == -1)
+            if (TrackListViewSelectedIndex == -1)
             {
                 return;
             }
@@ -179,31 +192,31 @@ namespace Youtube_downloader
             }
 
             // Получаем медиа песни из плейлиста плеера по индексу песни
-            var songMedia = player.currentPlaylist.Item[trackListViewSelectedIndex];
+            var songMedia = player.currentPlaylist.Item[TrackListViewSelectedIndex];
             player.Ctlcontrols.playItem(songMedia); // начинает воспроизводить плейлист с заданной песни
         }
 
         private void playlistListView_DoubleClick(object sender, EventArgs e)
         {
-            if (playlistListViewSelectedIndex == -1)
+            if (PlaylistListViewSelectedIndex == -1)
             {
                 return;
             }
 
-            if (playlistListViewSelectedIndex == 0)
+            if (PlaylistListViewSelectedIndex == 0)
             {
                 currentPlaylist = null;
             }
             else
             {
-                currentPlaylist = database.GetPlaylists()[playlistListViewSelectedIndex - 1];
+                currentPlaylist = database.GetPlaylists()[PlaylistListViewSelectedIndex - 1];
             }
             UpdateView();
         }
 
         private void DeletePlaylistListViewItem()
         {
-            Playlist playlist = database.GetPlaylists()[playlistListViewSelectedIndex - 1];
+            Playlist playlist = database.GetPlaylists()[PlaylistListViewSelectedIndex - 1];
             DeletePlaylist(playlist);
             UpdateView();
         }
@@ -218,15 +231,17 @@ namespace Youtube_downloader
 
         private void DeleteSong(Song song)
         {
+            youtubeDownload.CancelDownload(song);
+
             database.DeleteSong(song);
             if (File.Exists(song.filePath))
             {
                 File.Delete(song.filePath);
             }
             // Удаление песни из player.currentPlaylist, с проверкой на то, что SelectedIndex не выходит за границу списка
-            if (trackListViewSelectedIndex != -1 && player.currentPlaylist.count > trackListViewSelectedIndex)
+            if (TrackListViewSelectedIndex != -1 && player.currentPlaylist.count > TrackListViewSelectedIndex)
             {
-                player.currentPlaylist.removeItem(player.currentPlaylist.Item[trackListViewSelectedIndex]);
+                player.currentPlaylist.removeItem(player.currentPlaylist.Item[TrackListViewSelectedIndex]);
             }
         }
 
@@ -240,6 +255,8 @@ namespace Youtube_downloader
 
         private void DeletePlaylist(Playlist playlist)
         {
+            youtubeDownload.CancelDownload(playlist);
+
             database.DeletePlaylist(playlist);
             if (Directory.Exists(playlist.directoryPath))
             {
@@ -324,8 +341,7 @@ namespace Youtube_downloader
                 var res = dialog.ShowDialog();
                 if (res == DialogResult.OK && !string.IsNullOrWhiteSpace(dialog.SelectedPath)) {
                     File.WriteAllText(Path.Combine(Application.UserAppDataPath, "downloadsPath.txt"), dialog.SelectedPath);
-                    downloadsPath = dialog.SelectedPath;
-                    youtubeDownload = new YouTubeDownload(downloadsPath, applicationPath);
+                    youtubeDownload.DownloadsPath = dialog.SelectedPath;
                 }
             }
         }
