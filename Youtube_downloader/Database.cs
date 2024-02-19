@@ -1,14 +1,22 @@
 ﻿using System.Data.SQLite;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Security.Policy;
-using System.Xml.Serialization;
-using System.Threading.Tasks;
+using static Youtube_downloader.YouTubeDownload;
 
 namespace Youtube_downloader {
     public class Database {
-        private SQLiteConnection connection;
+        private readonly SQLiteConnection connection;
+
+        public delegate void PlaylistHandler(Playlist playlist);
+        public event PlaylistHandler OnPlaylistInsert;
+        public event PlaylistHandler OnPlaylistDelete;
+
+        public delegate void SongHandler(Song song);
+        public event SongHandler OnSongInsert;
+        public event SongHandler OnSongUpdate;
+        public event SongHandler OnSongDelete;
+
+        public delegate void SongMoveHandler(Song song, Playlist playlist);
+        public event SongMoveHandler OnSongMove;
 
         public Database(string path) {
             connection = new SQLiteConnection(path);
@@ -105,14 +113,15 @@ namespace Youtube_downloader {
             var rows = Select("songs", new string[] {"id", "songName", "author", "url", "authorUrl", "filePath", "progress"}, additional);
             var songs = new List<Song>();
             foreach (var row in rows) {
-                var song = new Song();
-                song.id = int.Parse(row[0]);
-                song.songName = row[1];
-                song.author= row[2];
-                song.url = row[3];
-                song.authorUrl = row[4];
-                song.filePath = row[5];
-                song.progress = int.Parse(row[6]);
+                var song = new Song {
+                    id = int.Parse(row[0]),
+                    songName = row[1],
+                    author = row[2],
+                    url = row[3],
+                    authorUrl = row[4],
+                    filePath = row[5],
+                    progress = int.Parse(row[6])
+                };
                 songs.Add(song);
             }
             return songs;
@@ -121,32 +130,45 @@ namespace Youtube_downloader {
         public void AddSong(Song song, Playlist playlist = null) { // добавление песни в базу данных
             song.id = InsertInto("songs", new string[]{"songName", "author", "url", "authorUrl", "filePath", "playlistId", "progress"}, 
                                             new object[]{song.songName, song.author, song.url, song.authorUrl, song.filePath, playlist?.id, song.progress});
+            OnSongInsert?.Invoke(song);
         }
 
         public void AddPlaylist(Playlist playlist) { // добавление плейлиста в базу данных
             playlist.id = InsertInto("playlists", new string[] { "playlistName", "playlistUrl", "directoryPath" },
                        new object[] { playlist.playlistName, playlist.playlistUrl, playlist.directoryPath });
+            OnPlaylistInsert?.Invoke(playlist);
         }
 
         public void DeleteSong(Song song) {
             Delete("songs", song.id);
+            OnSongDelete?.Invoke(song);
         }
 
         public void DeletePlaylist(Playlist playlist) {
             Delete("playlists", playlist.id);
+
+            foreach (Song song in playlist.songs) {
+                DeleteSong(song);
+            }
+
+            OnPlaylistDelete?.Invoke(playlist);
         }
 
         public void UpdateSongPlaylist(Song song, Playlist playlist) {
             Update("songs", song.id, "playlistId", playlist.id);
+            OnSongMove?.Invoke(song, playlist);
         }
 
         public void UpdateSongPath(Song song, string path) {
+            song.filePath = path;
             Update("songs", song.id, "filePath", path);
+            OnSongUpdate?.Invoke(song);
         }
 
-        public void UpdateSongProgress(Song song, int progress)
-        {
+        public void UpdateSongProgress(Song song, int progress) {
+            song.progress = progress;
             Update("songs", song.id, "progress", progress);
+            OnSongUpdate?.Invoke(song);
         }
     }
 }

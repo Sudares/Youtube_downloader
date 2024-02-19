@@ -1,15 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using YoutubeDLSharp;
 using YoutubeDLSharp.Metadata;
 using YoutubeDLSharp.Options;
 
-namespace Youtube_downloader
-{
+namespace Youtube_downloader {
     class YouTubeDownload
     {
         public string DownloadsPath { get; set; }
@@ -18,8 +16,10 @@ namespace Youtube_downloader
 
         readonly Dictionary<int, CancellationTokenSource> songsCancelTokens = new Dictionary<int, CancellationTokenSource>();
 
+        public delegate void CreateSongHandler(Song song, Playlist playlist);
+        public event CreateSongHandler OnCreateSong;
+
         public delegate void SongHandler(Song song);
-        public event SongHandler OnCreateSong;
         public event SongHandler OnUpdateSongProgress;
         public event SongHandler OnUpdateSongPath;
         public event SongHandler OnDeleteSong;
@@ -42,16 +42,14 @@ namespace Youtube_downloader
         }
 
         public void CancelDownload(Song song) {
-            if(songsCancelTokens.ContainsKey(song.id)) {
+            if (songsCancelTokens.ContainsKey(song.id)) {
                 var sct = songsCancelTokens[song.id];
                 sct.Cancel();
             }
         }
 
-        public void CancelDownload(Playlist playlist)
-        {
-            foreach(var song in playlist.songs)
-            {
+        public void CancelDownload(Playlist playlist) {
+            foreach(var song in playlist.songs) {
                 CancelDownload(song);
             }
         }
@@ -59,18 +57,14 @@ namespace Youtube_downloader
         public async void Download(string link)
         {
             var result = await youtubeDownloader.RunVideoDataFetch(link);
-            if (!result.Success)
-            {
+            if (!result.Success) {
                 return;
             }
 
             var data = result.Data;
-            if (data.Entries == null)
-            {
+            if (data.Entries == null) {
                 await DownloadAudio(data);
-            }
-            else
-            {
+            } else {
                 await DownloadPlaylist(data);
             }
         }
@@ -86,7 +80,7 @@ namespace Youtube_downloader
                 progress = 0
             };
 
-            OnCreateSong?.Invoke(song);
+            OnCreateSong?.Invoke(song, playlist);
 
             var cts = new CancellationTokenSource();
             songsCancelTokens[song.id] = cts;
