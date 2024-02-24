@@ -19,9 +19,13 @@ namespace Youtube_downloader {
         public delegate void CreateSongHandler(Song song, Playlist playlist);
         public event CreateSongHandler OnCreateSong;
 
+        public delegate void UpdateSongProgressHandler(Song song, int progress);
+        public event UpdateSongProgressHandler OnUpdateSongProgress;
+        public delegate void UpdateSongPathHandler(Song song, string path);
+        public event UpdateSongPathHandler OnUpdateSongPath;
+        public delegate void StopSongHandler(Song song);
+        public event StopSongHandler OnStopSong;
         public delegate void SongHandler(Song song);
-        public event SongHandler OnUpdateSongProgress;
-        public event SongHandler OnUpdateSongPath;
         public event SongHandler OnDeleteSong;
 
         public delegate void PlaylistHandler(Playlist playlist);
@@ -69,34 +73,19 @@ namespace Youtube_downloader {
             }
         }
 
-        private async Task DownloadAudio(VideoData videoData, Playlist playlist = null)
-        {
-            var song = new Song
-            {
-                songName = videoData.Title,
-                author = videoData.Channel,
-                url = videoData.Url ?? videoData.WebpageUrl,
-                authorUrl = videoData.ChannelUrl,
-                progress = 0
-            };
-
-            OnCreateSong?.Invoke(song, playlist);
-
+        public async Task StartSongDownload(Song song, Playlist playlist) {
             var cts = new CancellationTokenSource();
             songsCancelTokens[song.id] = cts;
 
-            try
-            {
+            try {
                 var result = await youtubeDownloader.RunAudioDownload(
                     song.url,
                     AudioConversionFormat.Mp3, // TODO: Настройка "В каком формате хотите сохранять файлы
                     ct: cts.Token,
                     progress: new Progress<DownloadProgress>(p => {
-                        song.progress = (int)(p.Progress * 100);
-                        OnUpdateSongProgress?.Invoke(song);
+                        OnUpdateSongProgress?.Invoke(song, (int)(p.Progress * 100));
                     }),
-                    overrideOptions: new OptionSet()
-                    {
+                    overrideOptions: new OptionSet() {
                         Continue = true,
                         Output = Path.Combine(
                             playlist?.directoryPath ?? DownloadsPath,
@@ -111,15 +100,29 @@ namespace Youtube_downloader {
                     return;
                 }
 
-                song.progress = 100;
-                OnUpdateSongProgress?.Invoke(song);
+                OnUpdateSongProgress?.Invoke(song, 100);
 
-                song.filePath = result.Data;
-                OnUpdateSongPath?.Invoke(song);
-            } catch (Exception e)
-            {
+                OnUpdateSongPath?.Invoke(song, result.Data);
+            } catch (OperationCanceledException) {
+                OnStopSong?.Invoke(song);
+            } catch (Exception) {
                 OnDeleteSong?.Invoke(song);
             }
+        }
+
+        private async Task DownloadAudio(VideoData videoData, Playlist playlist = null)
+        {
+            var song = new Song {
+                songName = videoData.Title,
+                author = videoData.Channel,
+                url = videoData.Url ?? videoData.WebpageUrl,
+                authorUrl = videoData.ChannelUrl,
+                progress = 0
+            };
+
+            OnCreateSong?.Invoke(song, playlist);
+
+            await StartSongDownload(song, playlist);
         }
 
         private async Task<Playlist> DownloadPlaylist(VideoData playlistData)

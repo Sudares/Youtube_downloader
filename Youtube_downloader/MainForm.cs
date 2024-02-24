@@ -70,8 +70,9 @@ namespace Youtube_downloader {
 
             youtubeDownload = new YouTubeDownload(downloadsPath, applicationPath);
             youtubeDownload.OnCreateSong += (Song song, Playlist playlist) => database.AddSong(song, playlist);
-            youtubeDownload.OnUpdateSongProgress += (Song song) => database.UpdateSongProgress(song, song.progress);
-            youtubeDownload.OnUpdateSongPath += (Song song) => database.UpdateSongPath(song, song.filePath);
+            youtubeDownload.OnUpdateSongProgress += (Song song, int progress) => database.UpdateSongProgress(song, progress);
+            youtubeDownload.OnUpdateSongPath += (Song song, string path) => database.UpdateSongPath(song, path);
+            youtubeDownload.OnStopSong += (Song song) => database.UpdateSongStopped(song, true);
             youtubeDownload.OnDeleteSong += (Song song) => database.DeleteSong(song);
             youtubeDownload.OnCreatePlaylist += (Playlist playlist) => database.AddPlaylist(playlist);
             youtubeDownload.OnDeletePlaylist += (Playlist playlist) => database.DeletePlaylist(playlist);
@@ -94,14 +95,22 @@ namespace Youtube_downloader {
             youtubeDownload.Download(link);
         }
 
-        private ListViewItem MakeSongListViewItem(Song song) {
-            var title = song.songName;
+        private string MakeSongListViewItemText(Song song) {
+            var result = song.songName;
 
             if (song.progress < 100) {
-                title += $" [{song.progress}%]";
+                result += $" [{song.progress}%]";
+
+                if (song.stopped) {
+                    result += $" [Остановлено]";
+                }
             }
 
-            return new ListViewItem(title, 0);
+            return result;
+        }
+
+        private ListViewItem MakeSongListViewItem(Song song) {
+            return new ListViewItem(MakeSongListViewItemText(song), 0);
         }
 
         private void UpdateViewSong(Song song) {
@@ -110,8 +119,8 @@ namespace Youtube_downloader {
                 return;
             }
 
-            currentSongs[songIndex] = song;
-            trackListView.Items[songIndex] = MakeSongListViewItem(song);
+            currentSongs[songIndex] = song; 
+            trackListView.Items[songIndex].Text = MakeSongListViewItemText(song);
         }
 
         private void UpdateView() {
@@ -171,27 +180,66 @@ namespace Youtube_downloader {
         }
 
         private void DeletetrackListViewItem() {
-            if (TrackListViewSelectedIndex != -1) {
-                Song song = currentSongs[TrackListViewSelectedIndex];
+            foreach (int i in trackListView.SelectedIndices) {
+                Song song = currentSongs[i];
                 DeleteSong(song);
-                UpdateView();
             }
         }
 
         private void MovetrackListViewItem() {
-            if (TrackListViewSelectedIndex == -1) {
-                return;
+            foreach (int i in trackListView.SelectedIndices)
+            {
+                Song song = currentSongs[i];
+                if (song == null)
+                {
+                    return;
+                }
+
+                var selectingPlaylistForm = new SelectingPlaylistForm(database);
+                selectingPlaylistForm.ShowDialog();
+                if (selectingPlaylistForm.selectedPlaylist == null)
+                {
+                    return;
+                }
+
+                MoveSongToPlaylist(song, selectingPlaylistForm.selectedPlaylist);
             }
+        }
 
-            Song song = currentSongs[TrackListViewSelectedIndex];
+        private void StopTrackItemDownload()
+        {
+            foreach (int i in trackListView.SelectedIndices) {
+                Song song = currentSongs[i];
+                if (song == null) {
+                    return;
+                }
 
-            var selectingPlaylistForm = new SelectingPlaylistForm(database);
-            selectingPlaylistForm.ShowDialog();
-            if (selectingPlaylistForm.selectedPlaylist == null) {
-                return;
+                if (song.stopped || song.progress >= 100) {
+                    return;
+                }
+
+                youtubeDownload.CancelDownload(song);
             }
+        }
 
-            MoveSongToPlaylist(song, selectingPlaylistForm.selectedPlaylist);
+        private void ResumeTrackItemDownload()
+        {
+            foreach (int i in trackListView.SelectedIndices)
+            {
+                Song song = currentSongs[TrackListViewSelectedIndex];
+                if (song == null)
+                {
+                    return;
+                }
+
+                if (!song.stopped || song.progress >= 100)
+                {
+                    return;
+                }
+
+                database.UpdateSongStopped(song, false);
+                youtubeDownload.StartSongDownload(song, database.GetSongPlaylist(song));
+            }
         }
 
         private void trackListView_DoubleClick(object sender, EventArgs e) {
@@ -294,14 +342,28 @@ namespace Youtube_downloader {
                 return;
             }
 
+            var song = currentSongs[item.Index];
+            if (song == null) {
+                return;
+            }
+
             trackListView.SelectedIndices.Clear();
             trackListView.SelectedIndices.Add(item.Index);
-            trackListView.ContextMenu = new ContextMenu(
-                new MenuItem[]{
-                    new MenuItem("Добавить в", (s, ev) => MovetrackListViewItem()),
-                    new MenuItem("Удалить", (s, ev) => DeletetrackListViewItem())
-                }
-            );
+
+            var contextMenuItems = new MenuItem[]{
+                new MenuItem("Добавить в", (s, ev) => MovetrackListViewItem()),
+                new MenuItem("Удалить", (s, ev) => DeletetrackListViewItem())
+            };
+            
+            if (song.progress < 100) {
+                contextMenuItems = contextMenuItems.Append(
+                    song.stopped
+                        ? new MenuItem("Возобновить загрузку", (s, ev) => ResumeTrackItemDownload())
+                        : new MenuItem("Остановить загрузку", (s, ev) => StopTrackItemDownload())
+                ).ToArray();
+            }
+
+            trackListView.ContextMenu = new ContextMenu(contextMenuItems);
         }
 
         private void playlistListView_MouseDown(object sender, MouseEventArgs e) {

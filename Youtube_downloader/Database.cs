@@ -35,7 +35,16 @@ namespace Youtube_downloader {
                                               "filePath VARCHAR",
                                               "playlistId INT",
                                               "progress INT",
+                                              "stopped BOOLEAN",
                                               "FOREIGN KEY (playlistId) REFERENCES Playlist(id)"});
+
+            MarkAllInProgressAsStopped();
+        }
+
+        private void MarkAllInProgressAsStopped() {
+            var command = connection.CreateCommand();
+            command.CommandText = $"UPDATE songs SET STOPPED = true WHERE progress < 100";
+            command.ExecuteNonQuery();
         }
 
         private void CreateTable(string tableName, string[] columns) {
@@ -94,8 +103,8 @@ namespace Youtube_downloader {
             command.ExecuteNonQuery();
         }
 
-        public List<Playlist> GetPlaylists() {
-            var rows = Select("playlists", new string[]{"id", "playlistName", "playlistUrl", "directoryPath"});
+        public List<Playlist> GetPlaylists(string additional = "") {
+            var rows = Select("playlists", new string[]{"id", "playlistName", "playlistUrl", "directoryPath"}, additional);
             var playlists = new List<Playlist>();
             foreach (var row in rows) {
                 var playlist = new Playlist();
@@ -109,8 +118,17 @@ namespace Youtube_downloader {
             return playlists;
         }
 
+        public Playlist GetSongPlaylist(Song song) {
+            var playlists = GetPlaylists($"WHERE id = (select playlistId from songs where id = {song.id})");
+            if (playlists.Count == 0) {
+                return null;
+            }
+
+            return playlists[0];
+        }
+
         public List<Song> GetSongs(string additional = "") {
-            var rows = Select("songs", new string[] {"id", "songName", "author", "url", "authorUrl", "filePath", "progress"}, additional);
+            var rows = Select("songs", new string[] {"id", "songName", "author", "url", "authorUrl", "filePath", "progress", "stopped"}, additional);
             var songs = new List<Song>();
             foreach (var row in rows) {
                 var song = new Song {
@@ -120,7 +138,8 @@ namespace Youtube_downloader {
                     url = row[3],
                     authorUrl = row[4],
                     filePath = row[5],
-                    progress = int.Parse(row[6])
+                    progress = int.Parse(row[6]),
+                    stopped = row[7].Length == 0 ? false : bool.Parse(row[7]),
                 };
                 songs.Add(song);
             }
@@ -162,6 +181,12 @@ namespace Youtube_downloader {
         public void UpdateSongPath(Song song, string path) {
             song.filePath = path;
             Update("songs", song.id, "filePath", path);
+            OnSongUpdate?.Invoke(song);
+        }
+
+        public void UpdateSongStopped(Song song, bool stopped) {
+            song.stopped = stopped;
+            Update("songs", song.id, "stopped", stopped);
             OnSongUpdate?.Invoke(song);
         }
 
