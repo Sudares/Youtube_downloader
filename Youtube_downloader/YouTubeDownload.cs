@@ -90,7 +90,10 @@ namespace Youtube_downloader {
                         Output = Path.Combine(
                             playlist?.directoryPath ?? DownloadsPath,
                             youtubeDownloader.OutputFileTemplate
-                        )
+                        ),
+                        EmbedThumbnail = true,
+                        ConvertThumbnails = "jpg",
+                        WriteThumbnail  = true,
                     }
                 );
 
@@ -103,6 +106,8 @@ namespace Youtube_downloader {
                 OnUpdateSongProgress?.Invoke(song, 100);
 
                 OnUpdateSongPath?.Invoke(song, result.Data);
+
+                // TODO: Fix thumbnail view
             } catch (OperationCanceledException) {
                 OnStopSong?.Invoke(song);
             } catch (Exception) {

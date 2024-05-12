@@ -109,8 +109,8 @@ namespace Youtube_downloader {
             return result;
         }
 
-        private ListViewItem MakeSongListViewItem(Song song) {
-            return new ListViewItem(MakeSongListViewItemText(song), 0);
+        private ListViewItem MakeSongListViewItem(Song song, int index) {
+            return new ListViewItem(MakeSongListViewItemText(song), index);
         }
 
         private void UpdateViewSong(Song song) {
@@ -121,6 +121,36 @@ namespace Youtube_downloader {
 
             currentSongs[songIndex] = song; 
             trackListView.Items[songIndex].Text = MakeSongListViewItemText(song);
+        }
+
+        private Bitmap ResizeImage(Bitmap image, int width, int height) {
+            double ratioX = (double)width / image.Width;
+            double ratioY = (double)height / image.Height;
+            double ratio = Math.Min(ratioX, ratioY);
+
+            int imageWidth = (int)(image.Width * ratio);
+            int imageHeight = (int)(image.Height * ratio);
+
+            var resizedImage = new Bitmap(width, height);
+
+            var graphics = Graphics.FromImage(resizedImage);
+            graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+            graphics.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
+            graphics.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.HighQuality;
+
+            SolidBrush brush = new SolidBrush(Color.Black);
+            Rectangle rect = new Rectangle(0, 0, width, height);
+            graphics.FillRectangle(brush, rect);
+
+            graphics.DrawImage(
+                image,
+                (width - imageWidth) / 2,
+                (height - imageHeight) / 2,
+                imageWidth,
+                imageHeight
+            );
+
+            return resizedImage;
         }
 
         private void UpdateView() {
@@ -146,15 +176,26 @@ namespace Youtube_downloader {
                 currentPlaylists = currentPlaylists.Where(playlist => playlist.playlistName.ToLower().Contains(playlistsSearch)).ToList();
             }
 
-            //var songImages = new ImageList();
-            //songImages.ImageSize = new Size(64, 64);
-            //for (var i = 0; i < currentSongs.Count; i++) {
-            //songImages.Images.Add(new Bitmap("C:\\Users\\One\\Pictures\\жабздец.jpg"));
-            //}
+            var songImages = new ImageList();
+            songImages.ImageSize = new Size(64, 64);
+            var emptyImage = new Bitmap(64, 64);
+            foreach (Song song in currentSongs) {
+                var songPath = song.filePath;
+                var songThumbnailPath = Path.ChangeExtension(songPath, ".jpg");
+
+                if (File.Exists(songThumbnailPath)) {
+                    var songThumbnail = new Bitmap(songThumbnailPath);
+                    var songThumbnailResized = ResizeImage(songThumbnail, 64, 64);
+                    songImages.Images.Add(songThumbnailResized);
+                } else {
+                    songImages.Images.Add(emptyImage);
+                }
+            }
 
             var songItems = new List<ListViewItem>();
-            foreach (Song song in currentSongs) {
-                songItems.Add(MakeSongListViewItem(song));
+            for (int i = 0; i < currentSongs.Count; i++) {
+                var song = currentSongs[i];
+                songItems.Add(MakeSongListViewItem(song, i));
             }
 
             var playlistItems = new List<ListViewItem> {
@@ -166,7 +207,7 @@ namespace Youtube_downloader {
             }
 
             trackListView.Items.Clear();
-            //trackListView.SmallImageList = songImages;
+            trackListView.SmallImageList = songImages;
             trackListView.Items.AddRange(songItems.ToArray());
 
             playlistListView.Items.Clear();
