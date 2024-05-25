@@ -72,7 +72,6 @@
             this.Controls.Add(this.urlLabel);
             this.Controls.Add(this.playlistNameLabel);
             this.Name = "PlaylistInfoForm";
-            this.Text = "PlaylistInfoForm";
             this.ResumeLayout(false);
             this.PerformLayout();
 

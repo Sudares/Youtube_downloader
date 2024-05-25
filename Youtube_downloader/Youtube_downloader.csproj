@@ -144,12 +144,6 @@
       <DependentUpon>SelectingPlaylistForm.cs</DependentUpon>
     </Compile>
     <Compile Include="Song.cs" />
-    <Compile Include="TrackInfoForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="TrackInfoForm.Designer.cs">
-      <DependentUpon>TrackInfoForm.cs</DependentUpon>
-    </Compile>
     <Compile Include="YouTubeDownload.cs" />
     <EmbeddedResource Include="BrowserForm.resx">
       <DependentUpon>BrowserForm.cs</DependentUpon>
@@ -174,9 +168,6 @@
     </Compile>
     <EmbeddedResource Include="SelectingPlaylistForm.resx">
       <DependentUpon>SelectingPlaylistForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="TrackInfoForm.resx">
-      <DependentUpon>TrackInfoForm.cs</DependentUpon>
     </EmbeddedResource>
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
