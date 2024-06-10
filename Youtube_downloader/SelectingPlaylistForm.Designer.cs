@@ -40,7 +40,7 @@
             this.searchPlaylistListBox.ItemHeight = 18;
             this.searchPlaylistListBox.Location = new System.Drawing.Point(0, 40);
             this.searchPlaylistListBox.Name = "searchPlaylistListBox";
-            this.searchPlaylistListBox.Size = new System.Drawing.Size(289, 342);
+            this.searchPlaylistListBox.Size = new System.Drawing.Size(375, 342);
             this.searchPlaylistListBox.TabIndex = 0;
             this.searchPlaylistListBox.Click += new System.EventHandler(this.searchPlaylistListBox_Click);
             // 
@@ -52,7 +52,7 @@
             this.playlistSearchTextBox.Location = new System.Drawing.Point(0, 0);
             this.playlistSearchTextBox.Multiline = true;
             this.playlistSearchTextBox.Name = "playlistSearchTextBox";
-            this.playlistSearchTextBox.Size = new System.Drawing.Size(289, 40);
+            this.playlistSearchTextBox.Size = new System.Drawing.Size(375, 40);
             this.playlistSearchTextBox.TabIndex = 1;
             this.playlistSearchTextBox.TextChanged += new System.EventHandler(this.playlistSearchTextBox_TextChanged);
             // 
@@ -61,10 +61,11 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(3)))), ((int)(((byte)(64)))), ((int)(((byte)(106)))));
-            this.ClientSize = new System.Drawing.Size(289, 382);
+            this.ClientSize = new System.Drawing.Size(375, 398);
             this.Controls.Add(this.playlistSearchTextBox);
             this.Controls.Add(this.searchPlaylistListBox);
             this.Name = "SelectingPlaylistForm";
+            this.Text = "Переместить в...";
             this.ResumeLayout(false);
             this.PerformLayout();
 

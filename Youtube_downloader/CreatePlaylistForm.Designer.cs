@@ -72,6 +72,7 @@
             this.Controls.Add(this.createNewPlaylistButton);
             this.Controls.Add(this.playlistNameLabel);
             this.Name = "CreatePlaylistForm";
+            this.Text = "Создание плейлиста";
             this.ResumeLayout(false);
             this.PerformLayout();
 

@@ -123,7 +123,7 @@ namespace Youtube_downloader {
             trackListView.Items[songIndex].Text = MakeSongListViewItemText(song);
         }
 
-        private Bitmap ResizeImage(Bitmap image, int width, int height) {
+        private Bitmap ResizeImage(Bitmap image, int width, int height, int gap) {
             double ratioX = (double)width / image.Width;
             double ratioY = (double)height / image.Height;
             double ratio = Math.Min(ratioX, ratioY);
@@ -131,7 +131,7 @@ namespace Youtube_downloader {
             int imageWidth = (int)(image.Width * ratio);
             int imageHeight = (int)(image.Height * ratio);
 
-            var resizedImage = new Bitmap(width, height);
+            var resizedImage = new Bitmap(width, height + gap * 2);
 
             var graphics = Graphics.FromImage(resizedImage);
             graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
@@ -139,13 +139,13 @@ namespace Youtube_downloader {
             graphics.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.HighQuality;
 
             SolidBrush brush = new SolidBrush(Color.Black);
-            Rectangle rect = new Rectangle(0, 0, width, height);
+            Rectangle rect = new Rectangle(0, gap, width, height);
             graphics.FillRectangle(brush, rect);
 
             graphics.DrawImage(
                 image,
                 (width - imageWidth) / 2,
-                (height - imageHeight) / 2,
+                (height - imageHeight) / 2 + gap,
                 imageWidth,
                 imageHeight
             );
@@ -176,16 +176,19 @@ namespace Youtube_downloader {
                 currentPlaylists = currentPlaylists.Where(playlist => playlist.playlistName.ToLower().Contains(playlistsSearch)).ToList();
             }
 
-            var songImages = new ImageList();
-            songImages.ImageSize = new Size(64, 64);
-            var emptyImage = new Bitmap(64, 64);
+            var itemsGap = 4;
+
+            var songImages = new ImageList {
+                ImageSize = new Size(64, 64 + itemsGap * 2)
+            };
+            var emptyImage = new Bitmap(64, 64 + itemsGap * 2);
             foreach (Song song in currentSongs) {
                 var songPath = song.filePath;
                 var songThumbnailPath = Path.ChangeExtension(songPath, ".jpg");
 
                 if (File.Exists(songThumbnailPath)) {
                     var songThumbnail = new Bitmap(songThumbnailPath);
-                    var songThumbnailResized = ResizeImage(songThumbnail, 64, 64);
+                    var songThumbnailResized = ResizeImage(songThumbnail, 64, 64, itemsGap);
                     songImages.Images.Add(songThumbnailResized);
                 } else {
                     songImages.Images.Add(emptyImage);

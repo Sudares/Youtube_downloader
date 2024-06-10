@@ -31,6 +31,7 @@
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.настройкиToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.выбратьПутьДляСохраненияToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.выбратьВБраузереToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.enableAudioPanel = new System.Windows.Forms.Panel();
             this.player = new AxWMPLib.AxWindowsMediaPlayer();
             this.downloadProgressBar = new System.Windows.Forms.ProgressBar();
@@ -42,7 +43,6 @@
             this.trackListView = new System.Windows.Forms.ListView();
             this.columnHeader1 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.backgroundWorker1 = new System.ComponentModel.BackgroundWorker();
-            this.выбратьВБраузереToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.downloadPanel.SuspendLayout();
             this.menuStrip1.SuspendLayout();
             this.enableAudioPanel.SuspendLayout();
@@ -61,10 +61,10 @@
             this.downloadAudioButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.downloadAudioButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 11F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
             this.downloadAudioButton.ForeColor = System.Drawing.SystemColors.Window;
-            this.downloadAudioButton.Location = new System.Drawing.Point(867, 28);
+            this.downloadAudioButton.Location = new System.Drawing.Point(867, 30);
             this.downloadAudioButton.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.downloadAudioButton.Name = "downloadAudioButton";
-            this.downloadAudioButton.Size = new System.Drawing.Size(137, 69);
+            this.downloadAudioButton.Size = new System.Drawing.Size(137, 67);
             this.downloadAudioButton.TabIndex = 0;
             this.downloadAudioButton.Text = "Скачать";
             this.downloadAudioButton.UseVisualStyleBackColor = false;
@@ -105,10 +105,10 @@
             this.addPlaylistButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.addPlaylistButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 11F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
             this.addPlaylistButton.ForeColor = System.Drawing.SystemColors.Window;
-            this.addPlaylistButton.Location = new System.Drawing.Point(0, 28);
+            this.addPlaylistButton.Location = new System.Drawing.Point(0, 30);
             this.addPlaylistButton.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.addPlaylistButton.Name = "addPlaylistButton";
-            this.addPlaylistButton.Size = new System.Drawing.Size(239, 69);
+            this.addPlaylistButton.Size = new System.Drawing.Size(239, 67);
             this.addPlaylistButton.TabIndex = 4;
             this.addPlaylistButton.Text = "Добавить плейлист";
             this.addPlaylistButton.UseVisualStyleBackColor = false;
@@ -123,7 +123,7 @@
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
             this.menuStrip1.RenderMode = System.Windows.Forms.ToolStripRenderMode.System;
-            this.menuStrip1.Size = new System.Drawing.Size(1004, 28);
+            this.menuStrip1.Size = new System.Drawing.Size(1004, 30);
             this.menuStrip1.TabIndex = 5;
             this.menuStrip1.Text = "menuStrip1";
             // 
@@ -141,6 +141,13 @@
             this.выбратьПутьДляСохраненияToolStripMenuItem.Size = new System.Drawing.Size(301, 26);
             this.выбратьПутьДляСохраненияToolStripMenuItem.Text = "Выбрать путь для сохранения";
             this.выбратьПутьДляСохраненияToolStripMenuItem.Click += new System.EventHandler(this.выбратьПутьДляСохраненияToolStripMenuItem_Click);
+            // 
+            // выбратьВБраузереToolStripMenuItem
+            // 
+            this.выбратьВБраузереToolStripMenuItem.Name = "выбратьВБраузереToolStripMenuItem";
+            this.выбратьВБраузереToolStripMenuItem.Size = new System.Drawing.Size(164, 26);
+            this.выбратьВБраузереToolStripMenuItem.Text = "Выбрать в браузере";
+            this.выбратьВБраузереToolStripMenuItem.Click += new System.EventHandler(this.выбратьВБраузереToolStripMenuItem_Click);
             // 
             // enableAudioPanel
             // 
@@ -275,13 +282,6 @@
             // 
             this.columnHeader1.Width = 765;
             // 
-            // выбратьВБраузереToolStripMenuItem
-            // 
-            this.выбратьВБраузереToolStripMenuItem.Name = "выбратьВБраузереToolStripMenuItem";
-            this.выбратьВБраузереToolStripMenuItem.Size = new System.Drawing.Size(164, 24);
-            this.выбратьВБраузереToolStripMenuItem.Text = "Выбрать в браузере";
-            this.выбратьВБраузереToolStripMenuItem.Click += new System.EventHandler(this.выбратьВБраузереToolStripMenuItem_Click);
-            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
@@ -295,6 +295,7 @@
             this.MainMenuStrip = this.menuStrip1;
             this.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.Name = "MainForm";
+            this.Text = "Загрузчик аудио с YouTube";
             this.downloadPanel.ResumeLayout(false);
             this.downloadPanel.PerformLayout();
             this.menuStrip1.ResumeLayout(false);
